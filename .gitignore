@@ -1,0 +1,16 @@
+# Environment — never commit credentials
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+
+# uv
+uv.lock    # optionally commit this for reproducible installs
+
+# Runtime data — back up separately, not via git
+data/profiles/
+data/profiles.json

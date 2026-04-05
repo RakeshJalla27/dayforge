@@ -1,0 +1,805 @@
+{
+  "today": "2026-04-04",
+  "days": [
+    {
+      "date": "2026-03-29",
+      "label": "Monday",
+      "dayType": "weekday",
+      "blocks": [
+        {
+          "id": 1775247942307,
+          "start": "04:45",
+          "end": "05:00",
+          "name": "Wake Up Routine",
+          "category": "personal"
+        },
+        {
+          "id": 1,
+          "start": "05:00",
+          "end": "05:30",
+          "name": "Meditation",
+          "category": "wellness"
+        },
+        {
+          "id": 2,
+          "start": "05:30",
+          "end": "06:00",
+          "name": "Exercise",
+          "category": "wellness"
+        },
+        {
+          "id": 3,
+          "start": "06:00",
+          "end": "06:30",
+          "name": "Shower & Puja",
+          "category": "personal"
+        },
+        {
+          "id": 4,
+          "start": "06:30",
+          "end": "07:30",
+          "name": "Reading (30 Mins)",
+          "category": "learning",
+          "topic": "auto"
+        },
+        {
+          "id": 5,
+          "start": "07:30",
+          "end": "08:45",
+          "name": "Morning Commute",
+          "category": "commute"
+        },
+        {
+          "id": 6,
+          "start": "08:45",
+          "end": "09:00",
+          "name": "Work Prep & Settle In",
+          "category": "work"
+        },
+        {
+          "id": 7,
+          "start": "09:00",
+          "end": "11:00",
+          "name": "Work",
+          "category": "work"
+        },
+        {
+          "id": 1775248419791,
+          "start": "11:00",
+          "end": "12:00",
+          "name": "Learning Block 1",
+          "category": "personal"
+        },
+        {
+          "id": 1775248505702,
+          "start": "12:00",
+          "end": "17:00",
+          "name": "Work",
+          "category": "personal"
+        },
+        {
+          "id": 8,
+          "start": "17:00",
+          "end": "18:00",
+          "name": "Evening Commute",
+          "category": "commute"
+        },
+        {
+          "id": 9,
+          "start": "18:00",
+          "end": "20:30",
+          "name": "Family Time \ud83c\udfe0 & Dinner",
+          "category": "personal"
+        },
+        {
+          "id": 10,
+          "start": "20:30",
+          "end": "21:30",
+          "name": "Learning Block 2",
+          "category": "learning"
+        },
+        {
+          "id": 1775248689380,
+          "start": "21:30",
+          "end": "22:00",
+          "name": "Wind Down",
+          "category": "personal"
+        }
+      ]
+    },
+    {
+      "date": "2026-03-30",
+      "label": "Tuesday",
+      "dayType": "weekday",
+      "blocks": [
+        {
+          "id": 1775247942307,
+          "start": "04:45",
+          "end": "05:00",
+          "name": "Wake Up Routine",
+          "category": "personal"
+        },
+        {
+          "id": 1,
+          "start": "05:00",
+          "end": "05:30",
+          "name": "Meditation",
+          "category": "wellness"
+        },
+        {
+          "id": 2,
+          "start": "05:30",
+          "end": "06:00",
+          "name": "Exercise",
+          "category": "wellness"
+        },
+        {
+          "id": 3,
+          "start": "06:00",
+          "end": "06:30",
+          "name": "Shower & Puja",
+          "category": "personal"
+        },
+        {
+          "id": 4,
+          "start": "06:30",
+          "end": "07:30",
+          "name": "Reading (30 Mins)",
+          "category": "learning",
+          "topic": "auto"
+        },
+        {
+          "id": 5,
+          "start": "07:30",
+          "end": "08:45",
+          "name": "Morning Commute",
+          "category": "commute"
+        },
+        {
+          "id": 6,
+          "start": "08:45",
+          "end": "09:00",
+          "name": "Work Prep & Settle In",
+          "category": "work"
+        },
+        {
+          "id": 7,
+          "start": "09:00",
+          "end": "11:00",
+          "name": "Work",
+          "category": "work"
+        },
+        {
+          "id": 1775248419791,
+          "start": "11:00",
+          "end": "12:00",
+          "name": "Learning Block 1",
+          "category": "personal"
+        },
+        {
+          "id": 1775248505702,
+          "start": "12:00",
+          "end": "17:00",
+          "name": "Work",
+          "category": "personal"
+        },
+        {
+          "id": 8,
+          "start": "17:00",
+          "end": "18:00",
+          "name": "Evening Commute",
+          "category": "commute"
+        },
+        {
+          "id": 9,
+          "start": "18:00",
+          "end": "20:30",
+          "name": "Family Time \ud83c\udfe0 & Dinner",
+          "category": "personal"
+        },
+        {
+          "id": 10,
+          "start": "20:30",
+          "end": "21:30",
+          "name": "Learning Block 2",
+          "category": "learning"
+        },
+        {
+          "id": 1775248689380,
+          "start": "21:30",
+          "end": "22:00",
+          "name": "Wind Down",
+          "category": "personal"
+        }
+      ]
+    },
+    {
+      "date": "2026-03-31",
+      "label": "Wednesday",
+      "dayType": "weekday",
+      "blocks": [
+        {
+          "id": 1775247942307,
+          "start": "04:45",
+          "end": "05:00",
+          "name": "Wake Up Routine",
+          "category": "personal"
+        },
+        {
+          "id": 1,
+          "start": "05:00",
+          "end": "05:30",
+          "name": "Meditation",
+          "category": "wellness"
+        },
+        {
+          "id": 2,
+          "start": "05:30",
+          "end": "06:00",
+          "name": "Exercise",
+          "category": "wellness"
+        },
+        {
+          "id": 3,
+          "start": "06:00",
+          "end": "06:30",
+          "name": "Shower & Puja",
+          "category": "personal"
+        },
+        {
+          "id": 4,
+          "start": "06:30",
+          "end": "07:30",
+          "name": "Reading (30 Mins)",
+          "category": "learning",
+          "topic": "auto"
+        },
+        {
+          "id": 5,
+          "start": "07:30",
+          "end": "08:45",
+          "name": "Morning Commute",
+          "category": "commute"
+        },
+        {
+          "id": 6,
+          "start": "08:45",
+          "end": "09:00",
+          "name": "Work Prep & Settle In",
+          "category": "work"
+        },
+        {
+          "id": 7,
+          "start": "09:00",
+          "end": "11:00",
+          "name": "Work",
+          "category": "work"
+        },
+        {
+          "id": 1775248419791,
+          "start": "11:00",
+          "end": "12:00",
+          "name": "Learning Block 1",
+          "category": "personal"
+        },
+        {
+          "id": 1775248505702,
+          "start": "12:00",
+          "end": "17:00",
+          "name": "Work",
+          "category": "personal"
+        },
+        {
+          "id": 8,
+          "start": "17:00",
+          "end": "18:00",
+          "name": "Evening Commute",
+          "category": "commute"
+        },
+        {
+          "id": 9,
+          "start": "18:00",
+          "end": "20:30",
+          "name": "Family Time \ud83c\udfe0 & Dinner",
+          "category": "personal"
+        },
+        {
+          "id": 10,
+          "start": "20:30",
+          "end": "21:30",
+          "name": "Learning Block 2",
+          "category": "learning"
+        },
+        {
+          "id": 1775248689380,
+          "start": "21:30",
+          "end": "22:00",
+          "name": "Wind Down",
+          "category": "personal"
+        }
+      ]
+    },
+    {
+      "date": "2026-04-01",
+      "label": "Thursday",
+      "dayType": "weekday",
+      "blocks": [
+        {
+          "id": 1775247942307,
+          "start": "04:45",
+          "end": "05:00",
+          "name": "Wake Up Routine",
+          "category": "personal"
+        },
+        {
+          "id": 1,
+          "start": "05:00",
+          "end": "05:30",
+          "name": "Meditation",
+          "category": "wellness"
+        },
+        {
+          "id": 2,
+          "start": "05:30",
+          "end": "06:00",
+          "name": "Exercise",
+          "category": "wellness"
+        },
+        {
+          "id": 3,
+          "start": "06:00",
+          "end": "06:30",
+          "name": "Shower & Puja",
+          "category": "personal"
+        },
+        {
+          "id": 4,
+          "start": "06:30",
+          "end": "07:30",
+          "name": "Reading (30 Mins)",
+          "category": "learning",
+          "topic": "auto"
+        },
+        {
+          "id": 5,
+          "start": "07:30",
+          "end": "08:45",
+          "name": "Morning Commute",
+          "category": "commute"
+        },
+        {
+          "id": 6,
+          "start": "08:45",
+          "end": "09:00",
+          "name": "Work Prep & Settle In",
+          "category": "work"
+        },
+        {
+          "id": 7,
+          "start": "09:00",
+          "end": "11:00",
+          "name": "Work",
+          "category": "work"
+        },
+        {
+          "id": 1775248419791,
+          "start": "11:00",
+          "end": "12:00",
+          "name": "Learning Block 1",
+          "category": "personal"
+        },
+        {
+          "id": 1775248505702,
+          "start": "12:00",
+          "end": "17:00",
+          "name": "Work",
+          "category": "personal"
+        },
+        {
+          "id": 8,
+          "start": "17:00",
+          "end": "18:00",
+          "name": "Evening Commute",
+          "category": "commute"
+        },
+        {
+          "id": 9,
+          "start": "18:00",
+          "end": "20:30",
+          "name": "Family Time \ud83c\udfe0 & Dinner",
+          "category": "personal"
+        },
+        {
+          "id": 10,
+          "start": "20:30",
+          "end": "21:30",
+          "name": "Learning Block 2",
+          "category": "learning"
+        },
+        {
+          "id": 1775248689380,
+          "start": "21:30",
+          "end": "22:00",
+          "name": "Wind Down",
+          "category": "personal"
+        }
+      ]
+    },
+    {
+      "date": "2026-04-02",
+      "label": "Friday",
+      "dayType": "weekday",
+      "blocks": [
+        {
+          "id": 1775247942307,
+          "start": "04:45",
+          "end": "05:00",
+          "name": "Wake Up Routine",
+          "category": "personal"
+        },
+        {
+          "id": 1,
+          "start": "05:00",
+          "end": "05:30",
+          "name": "Meditation",
+          "category": "wellness"
+        },
+        {
+          "id": 2,
+          "start": "05:30",
+          "end": "06:00",
+          "name": "Exercise",
+          "category": "wellness"
+        },
+        {
+          "id": 3,
+          "start": "06:00",
+          "end": "06:30",
+          "name": "Shower & Puja",
+          "category": "personal"
+        },
+        {
+          "id": 4,
+          "start": "06:30",
+          "end": "07:30",
+          "name": "Reading (30 Mins)",
+          "category": "learning",
+          "topic": "auto"
+        },
+        {
+          "id": 5,
+          "start": "07:30",
+          "end": "08:45",
+          "name": "Morning Commute",
+          "category": "commute"
+        },
+        {
+          "id": 6,
+          "start": "08:45",
+          "end": "09:00",
+          "name": "Work Prep & Settle In",
+          "category": "work"
+        },
+        {
+          "id": 7,
+          "start": "09:00",
+          "end": "11:00",
+          "name": "Work",
+          "category": "work"
+        },
+        {
+          "id": 1775248419791,
+          "start": "11:00",
+          "end": "12:00",
+          "name": "Learning Block 1",
+          "category": "personal"
+        },
+        {
+          "id": 1775248505702,
+          "start": "12:00",
+          "end": "17:00",
+          "name": "Work",
+          "category": "personal"
+        },
+        {
+          "id": 8,
+          "start": "17:00",
+          "end": "18:00",
+          "name": "Evening Commute",
+          "category": "commute"
+        },
+        {
+          "id": 9,
+          "start": "18:00",
+          "end": "20:30",
+          "name": "Family Time \ud83c\udfe0 & Dinner",
+          "category": "personal"
+        },
+        {
+          "id": 10,
+          "start": "20:30",
+          "end": "21:30",
+          "name": "Learning Block 2",
+          "category": "learning"
+        },
+        {
+          "id": 1775248689380,
+          "start": "21:30",
+          "end": "22:00",
+          "name": "Wind Down",
+          "category": "personal"
+        }
+      ]
+    },
+    {
+      "date": "2026-04-03",
+      "label": "Saturday",
+      "dayType": "saturday",
+      "blocks": [
+        {
+          "id": 1775283265623,
+          "start": "04:45",
+          "end": "05:00",
+          "name": "Wake Up Routine",
+          "category": "personal"
+        },
+        {
+          "id": 1,
+          "start": "05:00",
+          "end": "05:30",
+          "name": "Meditation",
+          "category": "wellness"
+        },
+        {
+          "id": 2,
+          "start": "05:30",
+          "end": "06:00",
+          "name": "Exercise",
+          "category": "wellness"
+        },
+        {
+          "id": 3,
+          "start": "06:00",
+          "end": "06:30",
+          "name": "Shower & Puja",
+          "category": "personal",
+          "topic": "auto"
+        },
+        {
+          "id": 4,
+          "start": "06:30",
+          "end": "07:30",
+          "name": "Learning Block 1",
+          "category": "learning"
+        },
+        {
+          "id": 5,
+          "start": "07:30",
+          "end": "08:30",
+          "name": "Learning Block 2",
+          "category": "learning",
+          "topic": "auto"
+        },
+        {
+          "id": 6,
+          "start": "08:30",
+          "end": "09:00",
+          "name": "Breakfast",
+          "category": "personal"
+        },
+        {
+          "id": 1775284145218,
+          "start": "09:00",
+          "end": "10:00",
+          "name": "Family and Wind down",
+          "category": "personal"
+        },
+        {
+          "id": 7,
+          "start": "10:00",
+          "end": "10:30",
+          "name": "Home Chores Prep",
+          "category": "chores"
+        },
+        {
+          "id": 8,
+          "start": "10:30",
+          "end": "12:30",
+          "name": "Committed Time (Busy)",
+          "category": "blocked"
+        },
+        {
+          "id": 9,
+          "start": "12:30",
+          "end": "13:30",
+          "name": "Lunch & Rest",
+          "category": "personal"
+        },
+        {
+          "id": 10,
+          "start": "13:30",
+          "end": "15:30",
+          "name": "Home Chores (Dusting, Vacuuming, Mopping)",
+          "category": "chores"
+        },
+        {
+          "id": 11,
+          "start": "15:30",
+          "end": "22:00",
+          "name": "Personal Time / Leisure",
+          "category": "personal"
+        }
+      ]
+    },
+    {
+      "date": "2026-04-04",
+      "label": "Sunday",
+      "dayType": "sunday",
+      "blocks": [
+        {
+          "id": 1775284220150,
+          "start": "04:45",
+          "end": "05:00",
+          "name": "Wake Up Routine",
+          "category": "personal"
+        },
+        {
+          "id": 1,
+          "start": "05:00",
+          "end": "05:30",
+          "name": "Meditation",
+          "category": "wellness"
+        },
+        {
+          "id": 2,
+          "start": "05:30",
+          "end": "06:00",
+          "name": "Exercise",
+          "category": "wellness"
+        },
+        {
+          "id": 3,
+          "start": "06:00",
+          "end": "07:00",
+          "name": "Home Chores(Bathroom, Kitchen Deep Clean)",
+          "category": "chores",
+          "topic": "auto"
+        },
+        {
+          "id": 4,
+          "start": "07:00",
+          "end": "07:30",
+          "name": "Shower & Puja",
+          "category": "personal"
+        },
+        {
+          "id": 1775284624414,
+          "start": "07:30",
+          "end": "09:00",
+          "name": "Learning Block 1",
+          "category": "learning"
+        },
+        {
+          "id": 5,
+          "start": "09:00",
+          "end": "10:00",
+          "name": "Breakfast & Personal",
+          "category": "personal"
+        },
+        {
+          "id": 6,
+          "start": "10:00",
+          "end": "10:30",
+          "name": "Reading (30 min)",
+          "category": "learning"
+        },
+        {
+          "id": 7,
+          "start": "10:30",
+          "end": "14:15",
+          "name": "Personal Time / Leisure",
+          "category": "personal"
+        },
+        {
+          "id": 8,
+          "start": "14:15",
+          "end": "16:00",
+          "name": "Srijan's Badminton",
+          "category": "blocked"
+        },
+        {
+          "id": 9,
+          "start": "16:00",
+          "end": "20:30",
+          "name": "Personal Time / Leisure",
+          "category": "personal",
+          "topic": "auto"
+        },
+        {
+          "id": 10,
+          "start": "20:30",
+          "end": "21:30",
+          "name": "Learning Block 2",
+          "category": "learning"
+        },
+        {
+          "id": 1775284802458,
+          "start": "21:30",
+          "end": "22:00",
+          "name": "Wind Down & Sleep",
+          "category": "personal"
+        }
+      ]
+    }
+  ],
+  "topics": [
+    {
+      "id": "elasticsearch",
+      "name": "Elastic Search Engineering",
+      "priority": 1,
+      "color": "#f59e0b",
+      "target": 40,
+      "days": [
+        1,
+        3,
+        5
+      ],
+      "hours": 0
+    },
+    {
+      "id": "anthropic",
+      "name": "Anthropic Courses",
+      "priority": 2,
+      "color": "#8b5cf6",
+      "target": 60,
+      "days": [
+        2,
+        6
+      ],
+      "hours": 0
+    },
+    {
+      "id": "investing",
+      "name": "Complete Investing Course",
+      "priority": 3,
+      "color": "#10b981",
+      "target": 40,
+      "days": [
+        4
+      ],
+      "hours": 0
+    }
+  ],
+  "habits": [
+    {
+      "id": "meditation",
+      "name": "Meditation",
+      "icon": "\ud83e\uddd8",
+      "dur": "30 min"
+    },
+    {
+      "id": "exercise",
+      "name": "Exercise",
+      "icon": "\ud83d\udcaa",
+      "dur": "30 min"
+    },
+    {
+      "id": "reading",
+      "name": "Reading",
+      "icon": "\ud83d\udcd6",
+      "dur": "30 min"
+    },
+    {
+      "id": "learning",
+      "name": "2h Learning",
+      "icon": "\ud83c\udf93",
+      "dur": "2 hrs"
+    },
+    {
+      "id": "chores",
+      "name": "Home Chores",
+      "icon": "\ud83c\udfe0",
+      "dur": "varies"
+    }
+  ]
+}

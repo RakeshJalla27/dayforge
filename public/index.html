@@ -1,0 +1,1667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DayForge — Rakesh's Life Planner</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface2: #263548;
+  --surface3: #2d3f57;
+  --border: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --wellness: #7c3aed;
+  --learning: #2563eb;
+  --work: #dc2626;
+  --personal: #475569;
+  --commute: #d97706;
+  --chores: #059669;
+  --blocked: #334155;
+  --accent: #3b82f6;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: -0.02em; }
+.header-right { text-align: right; }
+.header-date { font-size: 0.75rem; color: var(--muted); }
+.header-time { font-size: 1rem; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+
+nav {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  overflow-x: auto;
+  padding: 0 1rem;
+  -webkit-overflow-scrolling: touch;
+}
+nav::-webkit-scrollbar { display: none; }
+nav button {
+  padding: 0.75rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.825rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 0.15s, border-color 0.15s;
+}
+nav button.active { color: var(--text); border-bottom-color: var(--accent); }
+nav button:hover:not(.active) { color: var(--text); }
+
+main { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
+
+.view { display: none; }
+.view.active { display: block; }
+
+.section-hd { margin-bottom: 1.25rem; }
+.section-hd h2 { font-size: 1.2rem; font-weight: 700; }
+.section-hd p { color: var(--muted); font-size: 0.825rem; margin-top: 0.2rem; }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+  margin-bottom: 1.25rem;
+}
+.legend-item { display: flex; align-items: center; gap: 0.35rem; font-size: 0.725rem; color: var(--muted); }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+
+/* ===== TIMELINE ===== */
+.timeline-wrap { position: relative; }
+.t-row { display: flex; margin-bottom: 2px; }
+.t-time {
+  width: 64px; min-width: 64px;
+  font-size: 0.7rem; color: var(--muted);
+  text-align: right; padding-right: 0.5rem;
+  padding-top: 0.6rem; line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.t-block {
+  flex: 1; padding: 0.55rem 0.75rem; border-radius: 7px;
+  display: flex; align-items: center; justify-content: space-between;
+  min-height: 36px; transition: filter 0.15s; position: relative;
+}
+.t-block:hover { filter: brightness(1.1); }
+.t-block.current { outline: 2px solid #ef4444; outline-offset: -1px; }
+.t-block.cat-wellness { background: rgba(124,58,237,0.25); border-left: 3px solid #7c3aed; }
+.t-block.cat-learning { background: rgba(37,99,235,0.28); border-left: 3px solid #2563eb; }
+.t-block.cat-work     { background: rgba(220,38,38,0.2);  border-left: 3px solid #dc2626; }
+.t-block.cat-personal { background: rgba(71,85,105,0.25); border-left: 3px solid #475569; }
+.t-block.cat-commute  { background: rgba(217,119,6,0.22); border-left: 3px solid #d97706; }
+.t-block.cat-chores   { background: rgba(5,150,105,0.22); border-left: 3px solid #059669; }
+.t-block.cat-blocked  { background: rgba(51,65,85,0.4);   border-left: 3px solid #475569; }
+.t-block.cat-sleep    { background: rgba(15,23,42,0.6);   border-left: 3px solid #1e293b; }
+.t-name { font-size: 0.85rem; font-weight: 500; }
+.t-dur  { font-size: 0.72rem; color: var(--muted); white-space: nowrap; margin-left: 0.5rem; }
+
+.now-line { display: flex; align-items: center; margin-bottom: 2px; }
+.now-label { width: 64px; min-width: 64px; font-size: 0.68rem; color: #ef4444; text-align: right; padding-right: 0.5rem; font-weight: 600; }
+.now-dot   { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; flex-shrink: 0; }
+.now-bar   { flex: 1; height: 2px; background: linear-gradient(to right, #ef4444, transparent); border-radius: 1px; margin-left: 4px; }
+
+/* ===== WEEK VIEW ===== */
+.week-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.week-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(130px, 1fr));
+  gap: 0.625rem; min-width: 900px;
+}
+.day-hd {
+  text-align: center; padding: 0.5rem;
+  background: var(--surface); border-radius: 8px;
+  margin-bottom: 0.4rem; border: 1px solid var(--border);
+}
+.day-hd.is-today { background: rgba(59,130,246,0.18); border-color: var(--accent); }
+.day-hd .wd-name { font-size: 0.8rem; font-weight: 700; }
+.day-hd .wd-date { font-size: 0.7rem; color: var(--muted); }
+.w-block { padding: 0.3rem 0.4rem; border-radius: 4px; margin-bottom: 2px; font-size: 0.68rem; line-height: 1.3; }
+.w-block-name { font-weight: 500; }
+.w-block-time { opacity: 0.65; font-size: 0.63rem; }
+.w-block.cat-wellness { background: rgba(124,58,237,0.3); color: #c4b5fd; }
+.w-block.cat-learning { background: rgba(37,99,235,0.3); color: #93c5fd; }
+.w-block.cat-work     { background: rgba(220,38,38,0.2); color: #fca5a5; }
+.w-block.cat-personal { background: rgba(71,85,105,0.3); color: #94a3b8; }
+.w-block.cat-commute  { background: rgba(217,119,6,0.25); color: #fcd34d; }
+.w-block.cat-chores   { background: rgba(5,150,105,0.25); color: #6ee7b7; }
+.w-block.cat-blocked  { background: rgba(51,65,85,0.5); color: #64748b; }
+
+/* ===== HABITS ===== */
+.habits-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1rem; }
+.habit-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.1rem;
+}
+.habit-hd { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.85rem; }
+.habit-name { font-weight: 600; font-size: 0.9rem; }
+.habit-dur  { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+.habit-streak {
+  background: rgba(245,158,11,0.18); color: #fbbf24;
+  padding: 0.2rem 0.5rem; border-radius: 999px;
+  font-size: 0.72rem; font-weight: 700; white-space: nowrap;
+}
+.habit-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.hday {
+  aspect-ratio: 1; border-radius: 4px;
+  background: var(--surface2); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; color: var(--muted);
+  cursor: pointer; transition: background 0.1s, border-color 0.1s;
+}
+.hday.done   { background: #059669; border-color: #059669; color: white; }
+.hday.today  { border-color: var(--accent); }
+.hday.future { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+.hday-wd { font-size: 0.6rem; color: var(--muted); text-align: center; padding-bottom: 2px; }
+.check-btn {
+  width: 100%; margin-top: 0.875rem; padding: 0.55rem;
+  border: 1px solid rgba(5,150,105,0.4); border-radius: 8px;
+  background: rgba(5,150,105,0.12); color: #34d399;
+  cursor: pointer; font-size: 0.825rem; font-weight: 500; transition: all 0.15s;
+}
+.check-btn:hover { background: rgba(5,150,105,0.25); }
+.check-btn.done { background: #059669; border-color: #059669; color: white; }
+
+/* ===== LEARNING ===== */
+.learning-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
+.lcard {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.1rem;
+}
+.l-priority { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.35rem; }
+.l-title    { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+.l-days     { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.75rem; }
+.prog-wrap  { height: 7px; background: var(--surface2); border-radius: 999px; overflow: hidden; margin-bottom: 0.4rem; }
+.prog-bar   { height: 100%; border-radius: 999px; transition: width 0.4s ease; }
+.l-stats    { display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
+.l-eta      { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.75rem; }
+.l-sessions-hd { font-size: 0.72rem; color: var(--muted); margin-bottom: 0.35rem; }
+.l-session {
+  font-size: 0.72rem; padding: 0.3rem 0.5rem;
+  background: var(--surface2); border-radius: 4px;
+  margin-bottom: 2px; display: flex; justify-content: space-between;
+}
+.l-log-btn {
+  width: 100%; padding: 0.55rem;
+  border: 1px solid var(--border); border-radius: 8px;
+  background: transparent; color: var(--text);
+  cursor: pointer; font-size: 0.825rem; transition: background 0.15s;
+}
+.l-log-btn:hover { background: var(--surface2); }
+
+/* ===== EDIT VIEW ===== */
+.edit-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.25rem; flex-wrap: wrap; }
+.etab {
+  padding: 0.45rem 0.9rem; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--muted); cursor: pointer; font-size: 0.825rem; transition: all 0.15s;
+}
+.etab.active { background: rgba(59,130,246,0.18); border-color: var(--accent); color: #60a5fa; }
+.edit-note {
+  background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 8px; padding: 0.75rem 1rem;
+  font-size: 0.8rem; color: #93c5fd; margin-bottom: 1rem;
+}
+.e-row {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; padding: 0.75rem 1rem;
+  margin-bottom: 0.4rem; display: flex; align-items: center;
+  gap: 0.625rem; flex-wrap: wrap;
+}
+.e-row input[type="time"] {
+  width: 95px; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text); padding: 0.35rem 0.5rem; font-size: 0.8rem;
+}
+.e-row input[type="text"] {
+  flex: 1; min-width: 140px; background: var(--surface2);
+  border: 1px solid var(--border); border-radius: 5px;
+  color: var(--text); padding: 0.35rem 0.5rem; font-size: 0.8rem;
+}
+.e-row select {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text); padding: 0.35rem 0.5rem; font-size: 0.8rem;
+}
+.e-row input:focus, .e-row select:focus { outline: 1px solid var(--accent); }
+.e-sep { font-size: 0.75rem; color: var(--muted); }
+.del-btn {
+  background: rgba(220,38,38,0.18); border: 1px solid rgba(220,38,38,0.3);
+  color: #f87171; padding: 0.35rem 0.625rem; border-radius: 5px;
+  cursor: pointer; font-size: 0.8rem; white-space: nowrap; transition: background 0.15s;
+}
+.del-btn:hover { background: rgba(220,38,38,0.3); }
+.add-btn {
+  background: rgba(37,99,235,0.15); border: 1px solid rgba(37,99,235,0.3);
+  color: #60a5fa; padding: 0.6rem 1rem; border-radius: 8px;
+  cursor: pointer; font-size: 0.825rem; width: 100%; margin-top: 0.4rem; transition: background 0.15s;
+}
+.add-btn:hover { background: rgba(37,99,235,0.25); }
+.save-btn {
+  background: var(--accent); border: none; color: white;
+  padding: 0.7rem 2rem; border-radius: 8px; cursor: pointer;
+  font-size: 0.875rem; font-weight: 600; margin-top: 1rem; margin-right: 0.5rem; transition: opacity 0.15s;
+}
+.save-btn:hover { opacity: 0.9; }
+.reset-btn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted); padding: 0.7rem 1.5rem; border-radius: 8px;
+  cursor: pointer; font-size: 0.875rem; margin-top: 1rem; transition: all 0.15s;
+}
+.reset-btn:hover { border-color: var(--text); color: var(--text); }
+
+/* ===== MODAL ===== */
+.overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.72); z-index: 200;
+  align-items: center; justify-content: center; padding: 1rem;
+}
+.overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 1.5rem; width: 400px; max-width: 100%;
+}
+.modal h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.35rem; }
+.modal-sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.1rem; }
+.modal label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 0.3rem; }
+.modal input[type="number"], .modal input[type="text"] {
+  width: 100%; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text); padding: 0.5rem 0.75rem;
+  font-size: 0.875rem; margin-bottom: 0.85rem;
+}
+.modal-btns { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
+.modal-btns button { flex: 1; padding: 0.6rem; border-radius: 7px; cursor: pointer; font-size: 0.875rem; border: none; font-weight: 500; }
+.mbtn-cancel  { background: var(--surface2); color: var(--text); }
+.mbtn-confirm { background: var(--accent); color: white; }
+
+/* ===== STALE PLAN INDICATOR ===== */
+.stale-dot {
+  display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+  background: #f59e0b; margin-left: 5px; vertical-align: middle;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.stale-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap;
+  background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 10px; padding: 0.65rem 1rem;
+  margin-bottom: 1.25rem; font-size: 0.825rem; color: #fcd34d;
+}
+.stale-bar-msg { display:flex; align-items:center; gap:0.5rem; }
+.stale-bar button {
+  background: rgba(245,158,11,0.2); border: 1px solid rgba(245,158,11,0.4);
+  color: #fcd34d; padding: 0.3rem 0.75rem; border-radius: 6px;
+  cursor: pointer; font-size: 0.8rem; font-weight: 600; white-space: nowrap;
+  transition: background 0.15s;
+}
+.stale-bar button:hover { background: rgba(245,158,11,0.35); }
+
+/* ===== WEEK CARDS ===== */
+.week-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem;
+}
+.week-card.is-today { border-color: var(--accent); background: rgba(59,130,246,0.07); }
+.wc-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem; }
+.wc-dayname { font-size:0.9rem; font-weight:700; }
+.wc-date    { font-size:0.72rem; color:var(--muted); margin-top:2px; }
+.wc-focus   { font-size:0.72rem; padding:0.2rem 0.6rem; border-radius:999px; background:rgba(139,92,246,0.2); color:#c4b5fd; white-space:nowrap; }
+.wc-blocks  { margin-bottom:0.75rem; }
+.wc-block   { display:flex; gap:0.5rem; align-items:baseline; font-size:0.75rem; margin-bottom:3px; }
+.wc-btime   { color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums; flex-shrink:0; }
+.wc-bname   { font-weight:500; }
+.wc-highlights { margin-bottom:0.625rem; }
+.wc-hl { font-size:0.75rem; color:var(--muted); padding:0.2rem 0; display:flex; gap:0.4rem; }
+.wc-hl::before { content:"•"; color:var(--accent); flex-shrink:0; }
+.wc-tip {
+  font-size:0.75rem; color:#fbbf24;
+  background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2);
+  border-radius:6px; padding:0.4rem 0.6rem;
+}
+.wc-tip::before { content:"💡 "; }
+
+/* AI loading state */
+.ai-loading {
+  display:flex; align-items:center; gap:0.75rem;
+  color:var(--muted); font-size:0.85rem; padding:2rem 0;
+  justify-content:center;
+}
+.ai-spinner {
+  width:20px; height:20px; border-radius:50%;
+  border:2px solid var(--border); border-top-color:#8b5cf6;
+  animation:spin 0.8s linear infinite; flex-shrink:0;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+
+/* ===== MANAGE BUTTONS ===== */
+.manage-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; }
+.manage-bar h2 { font-size:1.2rem; font-weight:700; }
+.add-item-btn {
+  padding:0.45rem 1rem; border-radius:8px;
+  background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.35);
+  color:#60a5fa; cursor:pointer; font-size:0.825rem; font-weight:500;
+  transition:background 0.15s;
+}
+.add-item-btn:hover { background:rgba(59,130,246,0.28); }
+.habit-del-btn {
+  background:none; border:none; color:var(--muted); cursor:pointer;
+  font-size:0.85rem; padding:0.2rem 0.4rem; border-radius:4px;
+  transition:color 0.15s, background 0.15s; line-height:1;
+}
+.habit-del-btn:hover { color:#f87171; background:rgba(220,38,38,0.12); }
+.topic-actions { display:flex; gap:0.4rem; margin-top:0.625rem; }
+.topic-edit-btn, .topic-del-btn {
+  flex:1; padding:0.45rem; border-radius:7px; cursor:pointer;
+  font-size:0.8rem; font-weight:500; border:1px solid var(--border);
+  transition:all 0.15s;
+}
+.topic-edit-btn { background:transparent; color:var(--text); }
+.topic-edit-btn:hover { background:var(--surface2); }
+.topic-del-btn  { background:rgba(220,38,38,0.1); border-color:rgba(220,38,38,0.25); color:#f87171; }
+.topic-del-btn:hover { background:rgba(220,38,38,0.22); }
+
+/* day checkbox grid in modal */
+.day-checks { display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.85rem; }
+.day-check-label {
+  display:flex; flex-direction:column; align-items:center; gap:3px;
+  cursor:pointer; font-size:0.7rem; color:var(--muted);
+}
+.day-check-label input { display:none; }
+.day-check-box {
+  width:30px; height:30px; border-radius:6px;
+  background:var(--surface2); border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  font-size:0.72rem; font-weight:600; transition:all 0.15s;
+}
+.day-check-label input:checked + .day-check-box {
+  background:var(--accent); border-color:var(--accent); color:white;
+}
+
+/* ===== PROFILE SWITCHER ===== */
+.profile-btn {
+  display: flex; align-items: center; gap: 0.5rem;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 999px; padding: 0.3rem 0.75rem 0.3rem 0.3rem;
+  cursor: pointer; transition: background 0.15s;
+}
+.profile-btn:hover { background: var(--surface3); }
+.profile-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; color: white; flex-shrink: 0;
+}
+.profile-name-label { font-size: 0.8rem; font-weight: 600; }
+.profile-chevron { font-size: 0.6rem; color: var(--muted); margin-left: 2px; }
+.profile-dropdown {
+  position: absolute; top: calc(100% + 8px); right: 0;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; min-width: 190px; z-index: 100;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  display: none; overflow: hidden;
+}
+.profile-dropdown.open { display: block; }
+.profile-dropdown-item {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.55rem 0.875rem; cursor: pointer;
+  font-size: 0.825rem; transition: background 0.1s;
+}
+.profile-dropdown-item:hover { background: var(--surface2); }
+.profile-dropdown-item.active { background: rgba(59,130,246,0.15); color: var(--accent); }
+.profile-dropdown-divider { height: 1px; background: var(--border); margin: 0; }
+.profile-dropdown-footer { padding: 0.5rem; }
+.profile-add-btn {
+  width: 100%; padding: 0.45rem; border-radius: 7px;
+  background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.25);
+  color: #60a5fa; cursor: pointer; font-size: 0.8rem;
+  font-weight: 500; transition: background 0.15s;
+}
+.profile-add-btn:hover { background: rgba(59,130,246,0.22); }
+.profile-del-icon {
+  background: none; border: none; color: var(--muted); cursor: pointer;
+  font-size: 0.75rem; padding: 2px 5px; border-radius: 4px; line-height: 1;
+  transition: color 0.1s, background 0.1s; flex-shrink: 0;
+}
+.profile-del-icon:hover { color: #f87171; background: rgba(220,38,38,0.12); }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; bottom: 1.5rem; right: 1.5rem;
+  background: #059669; color: white;
+  padding: 0.7rem 1.2rem; border-radius: 8px;
+  font-size: 0.85rem; font-weight: 500;
+  transform: translateY(80px); opacity: 0;
+  transition: all 0.25s; z-index: 300; pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* ===== SAVING INDICATOR ===== */
+.saving-dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+  background: #059669; margin-right: 6px;
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+@media (max-width: 640px) {
+  main { padding: 1rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>⚒️ DayForge</h1>
+    <div class="header-date" id="hdrDate"></div>
+  </div>
+  <div style="display:flex;align-items:center;gap:1rem;">
+    <!-- Profile Switcher -->
+    <div style="position:relative;" id="profileSwitcherWrap">
+      <button class="profile-btn" onclick="toggleProfileDropdown()">
+        <div class="profile-avatar" id="profileAvatar" style="background:#3b82f6;">R</div>
+        <span class="profile-name-label" id="profileBtnName">Rakesh</span>
+        <span class="profile-chevron">▼</span>
+      </button>
+      <div class="profile-dropdown" id="profileDropdown">
+        <div id="profileList"></div>
+        <div class="profile-dropdown-divider"></div>
+        <div class="profile-dropdown-footer">
+          <button class="profile-add-btn" onclick="openProfileModal()">+ Add Profile</button>
+        </div>
+      </div>
+    </div>
+    <!-- Clock -->
+    <div class="header-right">
+      <div class="header-time" id="hdrTime"></div>
+      <div id="saveStatus" style="font-size:0.68rem;color:var(--muted);text-align:right;margin-top:2px;"></div>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <button class="active" onclick="switchView('today')">🗓 Today</button>
+  <button onclick="switchView('week')">📆 Week</button>
+  <button onclick="switchView('habits')">✅ Habits</button>
+  <button onclick="switchView('learning')">📚 Learning</button>
+  <button onclick="switchView('edit')">⚙️ Edit</button>
+</nav>
+
+<main>
+
+  <!-- TODAY -->
+  <div id="view-today" class="view active">
+    <div class="section-hd">
+      <h2 id="tdTitle"></h2>
+      <p id="tdSub"></p>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div>Wellness</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#2563eb"></div>Learning</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div>Work</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#d97706"></div>Commute</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#059669"></div>Chores</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#475569"></div>Personal</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#334155"></div>Blocked</div>
+    </div>
+    <div id="todayTL" class="timeline-wrap"></div>
+  </div>
+
+  <!-- WEEK -->
+  <div id="view-week" class="view">
+    <div class="manage-bar">
+      <div>
+        <h2>Weekly Overview</h2>
+        <p id="weekRange" style="color:var(--muted);font-size:0.825rem;margin-top:0.2rem;"></p>
+      </div>
+      <button class="add-item-btn" id="planWeekBtn" onclick="generateWeekPlan()">✨ AI Plan</button>
+    </div>
+
+    <!-- Stale plan warning -->
+    <div id="weekStaleBar" class="stale-bar" style="display:none;">
+      <div class="stale-bar-msg">⚠️ Your schedule or learning data has changed — the AI plan may no longer reflect your week accurately.</div>
+      <button onclick="generateWeekPlan()">✨ Regenerate Plan</button>
+    </div>
+
+    <!-- AI summary bar -->
+    <div id="weekAISummary" style="display:none;background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:10px;padding:0.75rem 1rem;margin-bottom:1.25rem;font-size:0.825rem;color:#c4b5fd;"></div>
+
+    <!-- Day cards grid -->
+    <div id="weekCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;"></div>
+  </div>
+
+  <!-- HABITS -->
+  <div id="view-habits" class="view">
+    <div class="manage-bar">
+      <div>
+        <h2>Habit Tracker</h2>
+        <p style="color:var(--muted);font-size:0.825rem;margin-top:0.2rem;">Mark each day you complete a habit — last 28 days</p>
+      </div>
+      <button class="add-item-btn" onclick="openHabitModal()">+ Add Habit</button>
+    </div>
+    <div id="habitsGrid" class="habits-grid"></div>
+  </div>
+
+  <!-- LEARNING -->
+  <div id="view-learning" class="view">
+    <div class="manage-bar">
+      <div>
+        <h2>Learning Progress</h2>
+        <p style="color:var(--muted);font-size:0.825rem;margin-top:0.2rem;">Log sessions and track hours toward each topic goal</p>
+      </div>
+      <button class="add-item-btn" onclick="openTopicModal()">+ Add Topic</button>
+    </div>
+    <div id="learningGrid" class="learning-grid"></div>
+  </div>
+
+  <!-- EDIT -->
+  <div id="view-edit" class="view">
+    <div class="section-hd">
+      <h2>Edit Schedule</h2>
+      <p>Customize your timetable — changes save to <code style="font-size:0.8rem;color:var(--accent)">data/schedule.json</code></p>
+    </div>
+    <div class="edit-tabs">
+      <button class="etab active" onclick="switchETab('weekday')">Mon–Fri</button>
+      <button class="etab" onclick="switchETab('saturday')">Saturday</button>
+      <button class="etab" onclick="switchETab('sunday')">Sunday</button>
+    </div>
+    <div class="edit-note">
+      💡 Edit times, rename activities, change categories. Hit Save — changes are written to <strong>data/schedule.json</strong> on your Mac.
+    </div>
+    <div id="editRows"></div>
+    <div style="margin-top:0.5rem;">
+      <button class="save-btn" onclick="saveSchedule()">💾 Save Schedule</button>
+      <button class="reset-btn" onclick="resetSchedule()">↩ Reset to Defaults</button>
+    </div>
+  </div>
+
+</main>
+
+<!-- Add Habit Modal -->
+<div class="overlay" id="habitOverlay">
+  <div class="modal">
+    <h3>Add New Habit</h3>
+    <div class="modal-sub">This will add a new habit card to your tracker.</div>
+    <label>Habit name</label>
+    <input type="text" id="habitName" placeholder="e.g. Cold Shower" />
+    <label>Icon (emoji)</label>
+    <input type="text" id="habitIcon" placeholder="e.g. 🚿" maxlength="4" />
+    <label>Duration / note</label>
+    <input type="text" id="habitDur" placeholder="e.g. 5 min" />
+    <div class="modal-btns">
+      <button class="mbtn-cancel" onclick="closeHabitModal()">Cancel</button>
+      <button class="mbtn-confirm" onclick="confirmAddHabit()">Add Habit</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add / Edit Topic Modal -->
+<div class="overlay" id="topicOverlay">
+  <div class="modal">
+    <h3 id="topicModalTitle">Add Learning Topic</h3>
+    <div class="modal-sub">This will appear in your Learning tracker and schedule.</div>
+    <label>Topic name</label>
+    <input type="text" id="topicName" placeholder="e.g. System Design" />
+    <label>Target hours</label>
+    <input type="number" id="topicTarget" value="40" min="1" max="500" step="1" />
+    <label>Colour</label>
+    <input type="color" id="topicColor" value="#3b82f6" style="width:100%;height:36px;background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;margin-bottom:0.85rem;" />
+    <label>Scheduled days</label>
+    <div class="day-checks" id="topicDays">
+      <label class="day-check-label"><input type="checkbox" value="1"/><div class="day-check-box">Mon</div></label>
+      <label class="day-check-label"><input type="checkbox" value="2"/><div class="day-check-box">Tue</div></label>
+      <label class="day-check-label"><input type="checkbox" value="3"/><div class="day-check-box">Wed</div></label>
+      <label class="day-check-label"><input type="checkbox" value="4"/><div class="day-check-box">Thu</div></label>
+      <label class="day-check-label"><input type="checkbox" value="5"/><div class="day-check-box">Fri</div></label>
+      <label class="day-check-label"><input type="checkbox" value="6"/><div class="day-check-box">Sat</div></label>
+      <label class="day-check-label"><input type="checkbox" value="0"/><div class="day-check-box">Sun</div></label>
+    </div>
+    <div class="modal-btns">
+      <button class="mbtn-cancel" onclick="closeTopicModal()">Cancel</button>
+      <button class="mbtn-confirm" onclick="confirmSaveTopic()">Save Topic</button>
+    </div>
+  </div>
+</div>
+
+<!-- Log Session Modal -->
+<div class="overlay" id="logOverlay">
+  <div class="modal">
+    <h3>Log Learning Session</h3>
+    <div class="modal-sub" id="logTopicName"></div>
+    <label>Hours spent</label>
+    <input type="number" id="logHours" value="1" min="0.25" max="12" step="0.25" />
+    <label>Notes (optional)</label>
+    <input type="text" id="logNotes" placeholder="What did you cover today?" />
+    <div class="modal-btns">
+      <button class="mbtn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="mbtn-confirm" onclick="confirmLog()">Log Session</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Profile Modal -->
+<div class="overlay" id="profileOverlay">
+  <div class="modal">
+    <h3>Add New Profile</h3>
+    <div class="modal-sub">Each profile has its own schedule, habits and learning data.</div>
+    <label>Name</label>
+    <input type="text" id="profileNameInput" placeholder="e.g. Priya" />
+    <label>Colour</label>
+    <input type="color" id="profileColorInput" value="#8b5cf6" style="width:100%;height:36px;background:none;border:1px solid var(--border);border-radius:6px;cursor:pointer;margin-bottom:0.85rem;" />
+    <div class="modal-btns">
+      <button class="mbtn-cancel" onclick="closeProfileModal()">Cancel</button>
+      <button class="mbtn-confirm" onclick="confirmAddProfile()">Create Profile</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =====================================================================
+// STATIC DATA (schedule templates, topics, habits)
+// =====================================================================
+
+const DEFAULT_SCHEDULE = {
+  weekday: [
+    { id:1,  start:"05:00", end:"05:30", name:"Meditation",                           category:"wellness" },
+    { id:2,  start:"05:30", end:"06:00", name:"Exercise",                              category:"wellness" },
+    { id:3,  start:"06:00", end:"06:30", name:"Morning Routine (Shower & Breakfast)",  category:"personal" },
+    { id:4,  start:"06:30", end:"07:30", name:"Learning Block 1",                      category:"learning", topic:"auto" },
+    { id:5,  start:"07:30", end:"08:45", name:"Morning Commute",                       category:"commute"  },
+    { id:6,  start:"08:45", end:"09:00", name:"Work Prep & Settle In",                 category:"work"     },
+    { id:7,  start:"09:00", end:"17:00", name:"Work",                                  category:"work"     },
+    { id:8,  start:"17:00", end:"18:00", name:"Evening Commute",                       category:"commute"  },
+    { id:9,  start:"18:00", end:"20:30", name:"Family Time 🏠",                        category:"personal" },
+    { id:10, start:"20:30", end:"21:00", name:"Reading (30 min)",                      category:"wellness" },
+    { id:11, start:"21:00", end:"22:00", name:"Learning Block 2",                      category:"learning", topic:"auto" },
+  ],
+  saturday: [
+    { id:1,  start:"05:00", end:"05:30", name:"Meditation",                                    category:"wellness" },
+    { id:2,  start:"05:30", end:"06:00", name:"Exercise",                                       category:"wellness" },
+    { id:3,  start:"06:00", end:"07:00", name:"Learning Block 1",                               category:"learning", topic:"auto" },
+    { id:4,  start:"07:00", end:"08:00", name:"Breakfast & Personal",                           category:"personal" },
+    { id:5,  start:"08:00", end:"09:00", name:"Learning Block 2",                               category:"learning", topic:"auto" },
+    { id:6,  start:"09:00", end:"10:00", name:"Reading & Morning Wind-down",                    category:"wellness" },
+    { id:7,  start:"10:00", end:"10:30", name:"Home Chores Prep",                               category:"chores"   },
+    { id:8,  start:"10:30", end:"12:30", name:"Committed Time (Busy)",                          category:"blocked"  },
+    { id:9,  start:"12:30", end:"13:30", name:"Lunch & Rest",                                   category:"personal" },
+    { id:10, start:"13:30", end:"15:30", name:"Home Chores (Dusting, Vacuuming, Mopping)",      category:"chores"   },
+    { id:11, start:"15:30", end:"22:00", name:"Personal Time / Leisure",                        category:"personal" },
+  ],
+  sunday: [
+    { id:1,  start:"05:00", end:"05:30", name:"Meditation",                                category:"wellness" },
+    { id:2,  start:"05:30", end:"06:00", name:"Exercise",                                   category:"wellness" },
+    { id:3,  start:"06:00", end:"07:00", name:"Learning Block 1",                           category:"learning", topic:"auto" },
+    { id:4,  start:"07:00", end:"09:00", name:"Home Chores (Bathroom, Kitchen Deep Clean)", category:"chores"   },
+    { id:5,  start:"09:00", end:"10:00", name:"Breakfast & Personal",                       category:"personal" },
+    { id:6,  start:"10:00", end:"10:30", name:"Reading (30 min)",                           category:"wellness" },
+    { id:7,  start:"10:30", end:"14:15", name:"Personal Time / Leisure",                    category:"personal" },
+    { id:8,  start:"14:15", end:"16:00", name:"Committed Time (Busy)",                      category:"blocked"  },
+    { id:9,  start:"16:00", end:"17:00", name:"Learning Block 2",                           category:"learning", topic:"auto" },
+    { id:10, start:"17:00", end:"22:00", name:"Personal Time / Leisure",                    category:"personal" },
+  ]
+};
+
+const DEFAULT_TOPICS = [
+  { id:"elasticsearch", name:"Elastic Search Engineering",  priority:1, color:"#f59e0b", target:40,  days:[1,3,5] },
+  { id:"anthropic",     name:"Anthropic Courses",           priority:2, color:"#8b5cf6", target:60,  days:[2,6]   },
+  { id:"investing",     name:"Complete Investing Course",   priority:3, color:"#10b981", target:40,  days:[4]     },
+  { id:"aiautomation",  name:"AI Automation in Job Escape", priority:4, color:"#3b82f6", target:40,  days:[0]     },
+];
+
+const DEFAULT_HABITS = [
+  { id:"meditation", name:"Meditation",  icon:"🧘", dur:"30 min" },
+  { id:"exercise",   name:"Exercise",    icon:"💪", dur:"30 min" },
+  { id:"reading",    name:"Reading",     icon:"📖", dur:"30 min" },
+  { id:"learning",   name:"2h Learning", icon:"🎓", dur:"2 hrs"  },
+  { id:"chores",     name:"Home Chores", icon:"🏠", dur:"varies" },
+];
+
+// =====================================================================
+// STATE  (loaded from server on boot, written back on every change)
+// =====================================================================
+
+const state = {
+  schedule:     null,  // loaded from /api/{profileId}/schedule
+  habits:       {},    // loaded from /api/{profileId}/habits
+  learning:     {},    // loaded from /api/{profileId}/learning
+  habitsConfig: [],    // loaded from /api/{profileId}/habits-config
+  topicsConfig: [],    // loaded from /api/{profileId}/topics-config
+  editTab:        'weekday',
+  logTopic:       null,
+  editingTopicId: null,
+  weekPlan:       null,   // cached AI-generated weekly plan
+  planStale:      false,  // true when data changed since last AI plan
+  profileId:    null,   // active profile ID
+  profiles:     [],     // all profiles from /api/profiles
+};
+
+function markPlanStale() {
+  if (!state.weekPlan) return; // no plan yet — nothing to invalidate
+  state.planStale = true;
+  // Badge on the Week nav button
+  const weekBtn = document.querySelectorAll('nav button')[1];
+  if (weekBtn && !weekBtn.querySelector('.stale-dot')) {
+    const dot = document.createElement('span');
+    dot.className = 'stale-dot';
+    dot.title = 'Your AI plan may be out of date';
+    weekBtn.appendChild(dot);
+  }
+  // If Week view is open, show the banner immediately
+  if (document.getElementById('view-week').classList.contains('active')) {
+    renderStaleBar();
+  }
+}
+
+function clearPlanStale() {
+  state.planStale = false;
+  const dot = document.querySelector('nav button .stale-dot');
+  if (dot) dot.remove();
+  document.getElementById('weekStaleBar').style.display = 'none';
+}
+
+function renderStaleBar() {
+  const bar = document.getElementById('weekStaleBar');
+  if (state.planStale) {
+    bar.style.display = 'flex';
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+// =====================================================================
+// API  (talk to server.py)
+// =====================================================================
+
+async function apiGet(key) {
+  try {
+    const r = await fetch(`/api/${state.profileId}/${key}`);
+    return r.ok ? r.json() : null;
+  } catch { return null; }
+}
+
+async function apiPost(key, data) {
+  try {
+    await fetch(`/api/${state.profileId}/${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    flashSave();
+  } catch(e) {
+    showToast('⚠️ Could not save — is the server running?', '#dc2626');
+  }
+}
+
+function flashSave() {
+  const el = document.getElementById('saveStatus');
+  el.innerHTML = '<span class="saving-dot"></span>Saving…';
+  setTimeout(() => {
+    el.innerHTML = '✓ Saved to disk';
+    setTimeout(() => el.innerHTML = '', 2500);
+  }, 500);
+}
+
+// =====================================================================
+// UTILS
+// =====================================================================
+
+function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+function dateKey(d)  { return d.toISOString().split('T')[0]; }
+function todayKey()  { return dateKey(new Date()); }
+
+function dayType(d) {
+  const w = d.getDay();
+  return w === 6 ? 'saturday' : w === 0 ? 'sunday' : 'weekday';
+}
+
+function topicForDay(d) {
+  const w = d.getDay();
+  return state.topicsConfig.find(t => t.days.includes(w)) || state.topicsConfig[0] || {name:'Learning'};
+}
+
+function toMins(t) { const [h,m]=t.split(':').map(Number); return h*60+m; }
+
+function durStr(s, e) {
+  let sm=toMins(s), em=toMins(e);
+  if(em<=sm) em+=1440;
+  const d=em-sm, h=Math.floor(d/60), m=d%60;
+  return h===0?`${m}m`:m===0?`${h}h`:`${h}h ${m}m`;
+}
+
+function fmtTime(t) {
+  const [h,m]=t.split(':').map(Number);
+  return `${h%12||12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
+}
+
+function fmtDateFull(d) {
+  return d.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+}
+
+function isCurrent(b) {
+  const now=new Date(), cur=now.getHours()*60+now.getMinutes();
+  const s=toMins(b.start); let e=toMins(b.end);
+  if(e<=s) e+=1440;
+  return cur>=s && cur<e;
+}
+
+function showToast(msg, color) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.background=color||'#059669';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// =====================================================================
+// CLOCK
+// =====================================================================
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('hdrDate').textContent = fmtDateFull(now);
+  document.getElementById('hdrTime').textContent = now.toLocaleTimeString('en-US',{
+    hour:'2-digit', minute:'2-digit', second:'2-digit'
+  });
+}
+
+// =====================================================================
+// VIEW SWITCHER
+// =====================================================================
+
+function switchView(name) {
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  const idx = {today:0,week:1,habits:2,learning:3,edit:4}[name];
+  if(idx!==undefined) document.querySelectorAll('nav button')[idx].classList.add('active');
+  ({today:renderToday, week:renderWeek, habits:renderHabits, learning:renderLearning, edit:renderEdit})[name]?.();
+}
+
+// =====================================================================
+// TODAY
+// =====================================================================
+
+function renderToday() {
+  const now=new Date(), topic=topicForDay(now);
+  const blocks = state.schedule[dayType(now)];
+  document.getElementById('tdTitle').textContent = fmtDateFull(now);
+  document.getElementById('tdSub').textContent   = `Today's learning focus: ${topic.name}`;
+
+  const tl = document.getElementById('todayTL');
+  tl.innerHTML = '';
+  const curMins = now.getHours()*60+now.getMinutes();
+  let injected = false;
+
+  blocks.forEach((b,i) => {
+    if(!injected && toMins(b.start)>curMins) {
+      tl.appendChild(makeNowLine(now)); injected=true;
+    }
+    const isGenericLearning = b.topic==='auto' && b.category==='learning' && b.name.startsWith('Learning Block');
+    const nm = isGenericLearning
+      ? `${b.name} <span style="opacity:0.65;font-weight:400;font-size:0.75rem;">— ${topic.name}</span>`
+      : b.name;
+    const row=document.createElement('div');
+    row.className='t-row';
+    row.innerHTML=`
+      <div class="t-time">${fmtTime(b.start)}</div>
+      <div class="t-block cat-${b.category} ${isCurrent(b)?'current':''}">
+        <div class="t-name">${nm}</div>
+        <div class="t-dur">${durStr(b.start,b.end)}</div>
+      </div>`;
+    tl.appendChild(row);
+  });
+  if(!injected) tl.appendChild(makeNowLine(now));
+}
+
+function makeNowLine(now) {
+  const t=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+  const d=document.createElement('div');
+  d.className='now-line';
+  d.innerHTML=`<div class="now-label">${t}</div><div class="now-dot"></div><div class="now-bar"></div>`;
+  return d;
+}
+
+// =====================================================================
+// WEEK
+// =====================================================================
+
+// ── Week helpers ──────────────────────────────────────────────────────
+
+function getWeekDays() {
+  const now = new Date(), wd = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (wd === 0 ? 6 : wd - 1));
+  return Array.from({length:7}, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+}
+
+// Render a single day card — optionally enriched with AI plan data
+function renderDayCard(day, aiDay) {
+  const isToday = dateKey(day) === todayKey();
+  const blocks  = state.schedule[dayType(day)] || [];
+
+  const card = document.createElement('div');
+  card.className = `week-card ${isToday ? 'is-today' : ''}`;
+
+  const label     = day.toLocaleDateString('en-US', {weekday:'long'});
+  const dateLabel = day.toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  const focus     = aiDay?.focus || topicForDay(day)?.name || '';
+
+  // Header
+  card.innerHTML = `
+    <div class="wc-header">
+      <div>
+        <div class="wc-dayname">${label}</div>
+        <div class="wc-date">${dateLabel}</div>
+      </div>
+      ${focus ? `<div class="wc-focus">${focus}</div>` : ''}
+    </div>`;
+
+  // Schedule blocks (skip long personal/sleep for readability)
+  const showBlocks = blocks.filter(b => b.category !== 'personal' && b.category !== 'sleep');
+  if (showBlocks.length) {
+    const wrap = document.createElement('div');
+    wrap.className = 'wc-blocks';
+    showBlocks.forEach(b => {
+      const div = document.createElement('div');
+      div.className = 'wc-block';
+      div.innerHTML = `<span class="wc-btime">${b.start}</span><span class="wc-bname" style="color:${catColor(b.category)}">${b.name}</span>`;
+      wrap.appendChild(div);
+    });
+    card.appendChild(wrap);
+  }
+
+  // AI highlights
+  if (aiDay?.highlights?.length) {
+    const hlWrap = document.createElement('div');
+    hlWrap.className = 'wc-highlights';
+    aiDay.highlights.forEach(h => {
+      const div = document.createElement('div');
+      div.className = 'wc-hl';
+      div.textContent = h;
+      hlWrap.appendChild(div);
+    });
+    card.appendChild(hlWrap);
+  }
+
+  // AI tip
+  if (aiDay?.tip) {
+    const tip = document.createElement('div');
+    tip.className = 'wc-tip';
+    tip.textContent = aiDay.tip;
+    card.appendChild(tip);
+  }
+
+  return card;
+}
+
+function catColor(cat) {
+  return {
+    wellness:'#c4b5fd', learning:'#93c5fd', work:'#fca5a5',
+    commute:'#fcd34d', chores:'#6ee7b7', blocked:'#64748b', personal:'#94a3b8'
+  }[cat] || '#e2e8f0';
+}
+
+// Main renderWeek — always renders immediately from real data,
+// then enriches with cached AI plan if available
+function renderWeek() {
+  const days = getWeekDays();
+  const s = days[0].toLocaleDateString('en-US', {month:'short', day:'numeric'});
+  const e = days[6].toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+  document.getElementById('weekRange').textContent = `Week of ${s} – ${e}`;
+  renderStaleBar();
+
+  const container = document.getElementById('weekCards');
+  container.innerHTML = '';
+
+  // Build AI plan map by date if we have a cached plan
+  const aiMap = {};
+  if (state.weekPlan?.days) {
+    state.weekPlan.days.forEach(d => { aiMap[d.date] = d; });
+  }
+
+  // Show AI summary bar if plan exists
+  const summaryBar = document.getElementById('weekAISummary');
+  if (state.weekPlan?.summary) {
+    summaryBar.style.display = 'block';
+    summaryBar.textContent   = `✨ ${state.weekPlan.summary}`;
+  } else {
+    summaryBar.style.display = 'none';
+  }
+
+  days.forEach(day => {
+    const aiDay = aiMap[dateKey(day)];
+    container.appendChild(renderDayCard(day, aiDay));
+  });
+}
+
+// Call server to generate AI plan, then re-render
+async function generateWeekPlan() {
+  const btn = document.getElementById('planWeekBtn');
+  btn.disabled   = true;
+  btn.textContent = '⏳ Thinking…';
+
+  const container = document.getElementById('weekCards');
+  container.innerHTML = `<div class="ai-loading" style="grid-column:1/-1"><div class="ai-spinner"></div>Claude is planning your week…</div>`;
+  document.getElementById('weekAISummary').style.display = 'none';
+
+  const days = getWeekDays();
+  const payload = {
+    today:  dateKey(new Date()),
+    days:   days.map(d => ({
+      date:    dateKey(d),
+      label:   d.toLocaleDateString('en-US', {weekday:'long'}),
+      dayType: dayType(d),
+      blocks:  state.schedule[dayType(d)] || [],
+    })),
+    topics: state.topicsConfig.map(t => ({
+      ...t,
+      hours: (state.learning[t.id] || {}).hours || 0,
+    })),
+    habits: state.habitsConfig,
+  };
+
+  try {
+    const resp = await fetch(`/api/${state.profileId}/plan-week`, {
+      method:  'POST',
+      headers: {'Content-Type': 'application/json'},
+      body:    JSON.stringify(payload),
+    });
+    const plan = await resp.json();
+    if (!resp.ok) throw new Error(plan.error || 'Server error');
+    state.weekPlan = plan;
+    clearPlanStale();
+    renderWeek();
+    showToast('✨ AI weekly plan ready!', '#8b5cf6');
+  } catch(err) {
+    container.innerHTML = '';
+    renderWeek(); // fall back to regular view
+    showToast(`⚠️ ${err.message}`, '#dc2626');
+  } finally {
+    btn.disabled    = false;
+    btn.textContent = '✨ AI Plan';
+  }
+}
+
+// =====================================================================
+// HABITS
+// =====================================================================
+
+function renderHabits() {
+  const container=document.getElementById('habitsGrid');
+  container.innerHTML='';
+  const today=new Date(), tk=todayKey();
+
+  state.habitsConfig.forEach(h=>{
+    const days=Array.from({length:28},(_,i)=>{const d=new Date(today);d.setDate(today.getDate()-(27-i));return d;});
+    let streak=0;
+    const cur=new Date(today);
+    while(true){
+      const k=dateKey(cur);
+      if(state.habits[k]&&state.habits[k][h.id]){streak++;cur.setDate(cur.getDate()-1);}else break;
+    }
+    const todayDone=state.habits[tk]&&state.habits[tk][h.id];
+    const wdHeaders=['S','M','T','W','T','F','S'];
+    const firstDOW=days[0].getDay();
+    const hdHtml=Array.from({length:7},(_,i)=>`<div class="hday-wd">${wdHeaders[(firstDOW+i)%7]}</div>`).join('');
+    const calHtml=days.map(d=>{
+      const k=dateKey(d);
+      const done=state.habits[k]&&state.habits[k][h.id];
+      const isTod=k===tk, isFut=d>today;
+      return `<div class="hday ${done?'done':''} ${isTod?'today':''} ${isFut?'future':''}"
+        title="${d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}: ${done?'Done':'Not done'}"
+        onclick="toggleHabit('${k}','${h.id}')">${d.getDate()}</div>`;
+    }).join('');
+
+    const card=document.createElement('div');
+    card.className='habit-card';
+    card.innerHTML=`
+      <div class="habit-hd">
+        <div><div class="habit-name">${h.icon} ${h.name}</div><div class="habit-dur">${h.dur}</div></div>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <div class="habit-streak">🔥 ${streak}d streak</div>
+          <button class="habit-del-btn" onclick="deleteHabit('${h.id}')" title="Delete habit">✕</button>
+        </div>
+      </div>
+      <div class="habit-cal" style="margin-bottom:3px;">${hdHtml}</div>
+      <div class="habit-cal">${calHtml}</div>
+      <button class="check-btn ${todayDone?'done':''}" onclick="markHabit('${h.id}')">
+        ${todayDone?'✓ Completed Today':`Mark "${h.name}" Done Today`}
+      </button>`;
+    container.appendChild(card);
+  });
+}
+
+// ── Habit management ──────────────────────────────────────────────────
+
+function openHabitModal() {
+  document.getElementById('habitName').value='';
+  document.getElementById('habitIcon').value='';
+  document.getElementById('habitDur').value='';
+  document.getElementById('habitOverlay').classList.add('open');
+  document.getElementById('habitName').focus();
+}
+function closeHabitModal() { document.getElementById('habitOverlay').classList.remove('open'); }
+
+async function confirmAddHabit() {
+  const name=document.getElementById('habitName').value.trim();
+  const icon=document.getElementById('habitIcon').value.trim()||'⭐';
+  const dur =document.getElementById('habitDur').value.trim()||'—';
+  if(!name){ showToast('Please enter a habit name','#dc2626'); return; }
+  const id='habit_'+Date.now();
+  state.habitsConfig.push({id,name,icon,dur});
+  await apiPost('habits-config', state.habitsConfig);
+  closeHabitModal();
+  markPlanStale();
+  showToast(`✓ "${name}" habit added!`);
+  renderHabits();
+}
+
+async function deleteHabit(hid) {
+  const h=state.habitsConfig.find(x=>x.id===hid);
+  if(!h) return;
+  if(!confirm(`Delete the "${h.name}" habit? Your completion history will be kept.`)) return;
+  state.habitsConfig=state.habitsConfig.filter(x=>x.id!==hid);
+  await apiPost('habits-config', state.habitsConfig);
+  markPlanStale();
+  showToast(`✓ "${h.name}" removed`);
+  renderHabits();
+}
+
+async function toggleHabit(dk, hid) {
+  if(dk>todayKey()) return;
+  if(!state.habits[dk]) state.habits[dk]={};
+  state.habits[dk][hid]=!state.habits[dk][hid];
+  await apiPost('habits', state.habits);
+  renderHabits();
+}
+
+async function markHabit(hid) {
+  const tk=todayKey();
+  if(!state.habits[tk]) state.habits[tk]={};
+  state.habits[tk][hid]=true;
+  await apiPost('habits', state.habits);
+  showToast('✓ Habit marked as done!');
+  renderHabits();
+}
+
+// =====================================================================
+// LEARNING
+// =====================================================================
+
+function renderLearning() {
+  const container=document.getElementById('learningGrid');
+  container.innerHTML='';
+
+  state.topicsConfig.forEach(t=>{
+    const data=state.learning[t.id]||{hours:0,sessions:[]};
+    const pct=Math.min(100,Math.round((data.hours/t.target)*100));
+    const hpw=t.days.length*2;
+    const eta=hpw>0?Math.ceil(Math.max(0,t.target-data.hours)/hpw):'?';
+    const dayLabels=t.days.map(d=>['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d]).join(', ');
+    const recent=(data.sessions||[]).slice(-4).reverse();
+
+    const card=document.createElement('div');
+    card.className='lcard';
+    card.innerHTML=`
+      <div class="l-priority">Priority ${t.priority}</div>
+      <div class="l-title" style="color:${t.color}">${t.name}</div>
+      <div class="l-days">📅 ${dayLabels||'No days set'} · ${hpw}h/week</div>
+      <div class="prog-wrap"><div class="prog-bar" style="width:${pct}%;background:${t.color}"></div></div>
+      <div class="l-stats"><span>${data.hours.toFixed(1)}h / ${t.target}h target</span><span style="color:${t.color};font-weight:600">${pct}%</span></div>
+      <div class="l-eta">⏱ ~${eta} week${eta!==1?'s':''} to complete at current pace</div>
+      ${recent.length?`<div style="margin-bottom:0.75rem"><div class="l-sessions-hd">Recent sessions</div>${
+        recent.map(s=>`<div class="l-session"><span>${s.date}</span><span>${s.hours}h${s.notes?' — '+s.notes:''}</span></div>`).join('')
+      }</div>`:''}
+      <button class="l-log-btn" onclick="openLogModal('${t.id}')">+ Log Session</button>
+      <div class="topic-actions">
+        <button class="topic-edit-btn" onclick="openTopicModal('${t.id}')">✏️ Edit</button>
+        <button class="topic-del-btn"  onclick="deleteTopic('${t.id}')">✕ Delete</button>
+      </div>`;
+    container.appendChild(card);
+  });
+}
+
+// ── Topic management ──────────────────────────────────────────────────
+
+function openTopicModal(editId) {
+  state.editingTopicId = editId || null;
+  const isEdit = !!editId;
+  document.getElementById('topicModalTitle').textContent = isEdit ? 'Edit Learning Topic' : 'Add Learning Topic';
+
+  // reset day checkboxes
+  document.querySelectorAll('#topicDays input[type=checkbox]').forEach(cb => cb.checked=false);
+
+  if(isEdit){
+    const t=state.topicsConfig.find(x=>x.id===editId);
+    document.getElementById('topicName').value   = t.name;
+    document.getElementById('topicTarget').value = t.target;
+    document.getElementById('topicColor').value  = t.color;
+    t.days.forEach(d=>{
+      const cb=document.querySelector(`#topicDays input[value="${d}"]`);
+      if(cb) cb.checked=true;
+    });
+  } else {
+    document.getElementById('topicName').value   = '';
+    document.getElementById('topicTarget').value = 40;
+    document.getElementById('topicColor').value  = '#3b82f6';
+  }
+  document.getElementById('topicOverlay').classList.add('open');
+  document.getElementById('topicName').focus();
+}
+
+function closeTopicModal() { document.getElementById('topicOverlay').classList.remove('open'); }
+
+async function confirmSaveTopic() {
+  const name   = document.getElementById('topicName').value.trim();
+  const target = parseInt(document.getElementById('topicTarget').value)||40;
+  const color  = document.getElementById('topicColor').value;
+  const days   = [...document.querySelectorAll('#topicDays input:checked')].map(cb=>parseInt(cb.value));
+  if(!name){ showToast('Please enter a topic name','#dc2626'); return; }
+
+  if(state.editingTopicId){
+    const t=state.topicsConfig.find(x=>x.id===state.editingTopicId);
+    Object.assign(t,{name,target,color,days});
+    showToast(`✓ "${name}" updated!`);
+  } else {
+    const priority=state.topicsConfig.length+1;
+    state.topicsConfig.push({id:'topic_'+Date.now(),name,priority,color,target,days});
+    showToast(`✓ "${name}" added!`);
+  }
+  await apiPost('topics-config', state.topicsConfig);
+  closeTopicModal();
+  markPlanStale();
+  renderLearning();
+}
+
+async function deleteTopic(tid) {
+  const t=state.topicsConfig.find(x=>x.id===tid);
+  if(!t) return;
+  if(!confirm(`Delete "${t.name}"? Session history will be kept but the topic card will be removed.`)) return;
+  state.topicsConfig=state.topicsConfig.filter(x=>x.id!==tid);
+  state.topicsConfig.forEach((x,i)=>x.priority=i+1);
+  await apiPost('topics-config', state.topicsConfig);
+  markPlanStale();
+  showToast(`✓ "${t.name}" removed`);
+  renderLearning();
+}
+
+function openLogModal(tid) {
+  state.logTopic=tid;
+  const t=state.topicsConfig.find(x=>x.id===tid);
+  document.getElementById('logTopicName').textContent=t.name;
+  document.getElementById('logHours').value=1;
+  document.getElementById('logNotes').value='';
+  document.getElementById('logOverlay').classList.add('open');
+  document.getElementById('logHours').focus();
+}
+
+function closeModal() { document.getElementById('logOverlay').classList.remove('open'); }
+
+async function confirmLog() {
+  if(!state.logTopic) return;
+  const hours=parseFloat(document.getElementById('logHours').value)||0;
+  const notes=document.getElementById('logNotes').value.trim();
+  const tk=todayKey(), t=state.topicsConfig.find(x=>x.id===state.logTopic);
+  if(!state.learning[state.logTopic]) state.learning[state.logTopic]={hours:0,sessions:[]};
+  state.learning[state.logTopic].hours=+((state.learning[state.logTopic].hours+hours).toFixed(2));
+  state.learning[state.logTopic].sessions.push({date:tk,hours,notes});
+  if(!state.habits[tk]) state.habits[tk]={};
+  state.habits[tk]['learning']=true;
+  await apiPost('learning', state.learning);
+  await apiPost('habits', state.habits);
+  closeModal();
+  markPlanStale();
+  showToast(`✓ Logged ${hours}h for ${t.name}`,'#2563eb');
+  renderLearning();
+}
+
+// =====================================================================
+// EDIT
+// =====================================================================
+
+// Sort a block array in-place by start time
+function sortBlocks(tab) {
+  state.schedule[tab].sort((a,b) => toMins(a.start) - toMins(b.start));
+}
+
+// Returns array of overlap error strings, empty if none
+function findOverlaps(blocks) {
+  const errors = [];
+  const sorted = [...blocks].sort((a,b) => toMins(a.start) - toMins(b.start));
+  for (let i = 0; i < sorted.length - 1; i++) {
+    const curr = sorted[i], next = sorted[i+1];
+    const currEnd  = toMins(curr.end)  || 0;
+    const nextStart = toMins(next.start) || 0;
+    // Handle midnight wrap: if end <= start, treat as next-day end
+    const currEndAdj = currEnd <= toMins(curr.start) ? currEnd + 1440 : currEnd;
+    if (nextStart < currEndAdj) {
+      errors.push(`"${curr.name}" (${curr.start}–${curr.end}) overlaps with "${next.name}" (${next.start}–${next.end})`);
+    }
+  }
+  return errors;
+}
+
+function renderEdit() {
+  // Always sort before rendering
+  sortBlocks(state.editTab);
+  const blocks = state.schedule[state.editTab];
+  const container = document.getElementById('editRows');
+  container.innerHTML = '';
+  const cats = ['wellness','learning','work','commute','chores','personal','blocked','sleep'];
+
+  // Show overlap warnings at top if any
+  const overlaps = findOverlaps(blocks);
+  if (overlaps.length) {
+    const warn = document.createElement('div');
+    warn.style.cssText = 'background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.35);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.75rem;font-size:0.8rem;color:#f87171;';
+    warn.innerHTML = `<strong>⚠️ Time overlaps detected — fix before saving:</strong><br>${overlaps.map(e=>`• ${e}`).join('<br>')}`;
+    container.appendChild(warn);
+  }
+
+  blocks.forEach((b,i) => {
+    const row = document.createElement('div');
+    row.className = 'e-row';
+    row.innerHTML = `
+      <input type="time" value="${b.start}" onchange="updBlockById('${state.editTab}','${b.id}','start',this.value)"/>
+      <span class="e-sep">→</span>
+      <input type="time" value="${b.end}" onchange="updBlockById('${state.editTab}','${b.id}','end',this.value)"/>
+      <input type="text" value="${b.name}" onchange="updBlockById('${state.editTab}','${b.id}','name',this.value)" placeholder="Activity name"/>
+      <select onchange="updBlockById('${state.editTab}','${b.id}','category',this.value)">
+        ${cats.map(c=>`<option value="${c}" ${b.category===c?'selected':''}>${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('')}
+      </select>
+      <button class="del-btn" onclick="delBlockById('${state.editTab}','${b.id}')">✕</button>`;
+    container.appendChild(row);
+  });
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'add-btn';
+  addBtn.textContent = '+ Add Time Block';
+  addBtn.onclick = () => addBlock(state.editTab);
+  container.appendChild(addBtn);
+}
+
+function switchETab(tab) {
+  state.editTab = tab;
+  document.querySelectorAll('.etab').forEach(b => b.classList.remove('active'));
+  const labels = {weekday:'Mon', saturday:'Saturday', sunday:'Sunday'};
+  document.querySelectorAll('.etab').forEach(b => {
+    if (b.textContent.includes(labels[tab])) b.classList.add('active');
+  });
+  renderEdit();
+}
+
+function updBlock(tab, i, field, val) { state.schedule[tab][i][field] = val; }
+
+function updBlockById(tab, id, field, val) {
+  const b = state.schedule[tab].find(x => String(x.id) === String(id));
+  if (!b) return;
+  b[field] = val;
+  if (field === 'start' || field === 'end') renderEdit(); // re-sort on time change
+}
+
+function delBlock(tab, i) {
+  if (state.schedule[tab].length <= 1) { showToast('Cannot remove the last block!','#dc2626'); return; }
+  state.schedule[tab].splice(i, 1);
+  renderEdit();
+}
+
+function delBlockById(tab, id) {
+  if (state.schedule[tab].length <= 1) { showToast('Cannot remove the last block!','#dc2626'); return; }
+  state.schedule[tab] = state.schedule[tab].filter(x => String(x.id) !== String(id));
+  renderEdit();
+}
+
+function addBlock(tab) {
+  const bs = state.schedule[tab];
+  // Find last block by time and append after it
+  const sorted = [...bs].sort((a,b) => toMins(a.start) - toMins(b.start));
+  const last = sorted[sorted.length - 1];
+  const ns = last ? last.end : '08:00';
+  let [h,m] = ns.split(':').map(Number); h = (h+1) % 24;
+  const ne = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+  state.schedule[tab].push({id:Date.now(), start:ns, end:ne, name:'New Activity', category:'personal'});
+  renderEdit();
+}
+
+async function saveSchedule() {
+  const tab = state.editTab;
+  const overlaps = findOverlaps(state.schedule[tab]);
+  if (overlaps.length) {
+    showToast(`⚠️ Fix ${overlaps.length} overlap${overlaps.length>1?'s':''} before saving`, '#dc2626');
+    return;
+  }
+  sortBlocks(tab);
+  await apiPost('schedule', state.schedule);
+  markPlanStale();
+  showToast('✓ Schedule saved to disk!');
+}
+
+async function resetSchedule() {
+  if(!confirm('Reset to the original default schedule? Your edits will be lost.')) return;
+  state.schedule=deepClone(DEFAULT_SCHEDULE);
+  await apiPost('schedule', state.schedule);
+  showToast('✓ Reset to defaults!');
+  renderEdit();
+}
+
+// =====================================================================
+// PROFILES
+// =====================================================================
+
+function renderProfileSwitcher() {
+  const profile = state.profiles.find(p => p.id === state.profileId) || state.profiles[0];
+  if (!profile) return;
+
+  // Update header button
+  const avatarEl = document.getElementById('profileAvatar');
+  avatarEl.textContent     = profile.name.charAt(0).toUpperCase();
+  avatarEl.style.background = profile.color;
+  document.getElementById('profileBtnName').textContent = profile.name;
+
+  // Rebuild dropdown list
+  const list = document.getElementById('profileList');
+  list.innerHTML = '';
+  state.profiles.forEach(p => {
+    const item = document.createElement('div');
+    item.className = `profile-dropdown-item ${p.id === state.profileId ? 'active' : ''}`;
+
+    const av = document.createElement('div');
+    av.className   = 'profile-avatar';
+    av.textContent = p.name.charAt(0).toUpperCase();
+    av.style.cssText = `background:${p.color};width:24px;height:24px;font-size:0.7rem;`;
+
+    const nm = document.createElement('span');
+    nm.textContent = p.name;
+    nm.style.flex  = '1';
+
+    item.appendChild(av);
+    item.appendChild(nm);
+
+    // Delete button — only shown when there are multiple profiles
+    if (state.profiles.length > 1) {
+      const delBtn = document.createElement('button');
+      delBtn.className = 'profile-del-icon';
+      delBtn.title     = 'Remove profile';
+      delBtn.textContent = '✕';
+      delBtn.onclick = (e) => { e.stopPropagation(); deleteProfile(p.id); };
+      item.appendChild(delBtn);
+    }
+
+    item.addEventListener('click', () => switchProfile(p.id));
+    list.appendChild(item);
+  });
+}
+
+function toggleProfileDropdown() {
+  document.getElementById('profileDropdown').classList.toggle('open');
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('profileSwitcherWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('profileDropdown').classList.remove('open');
+  }
+});
+
+async function switchProfile(id) {
+  document.getElementById('profileDropdown').classList.remove('open');
+  if (id === state.profileId) return;
+  state.profileId = id;
+  state.weekPlan  = null;
+  state.planStale = false;
+  clearPlanStale();
+  renderProfileSwitcher();
+  await loadProfileData();
+  // Re-render the currently visible view
+  const activeView = document.querySelector('.view.active');
+  if (activeView) {
+    const name = activeView.id.replace('view-', '');
+    ({today:renderToday, week:renderWeek, habits:renderHabits, learning:renderLearning, edit:renderEdit})[name]?.();
+  }
+  const p = state.profiles.find(x => x.id === id);
+  showToast(`✓ Switched to ${p?.name || id}`);
+}
+
+async function loadProfileData() {
+  const [sched, habits, learning, habitsConfig, topicsConfig] = await Promise.all([
+    apiGet('schedule'),
+    apiGet('habits'),
+    apiGet('learning'),
+    apiGet('habits-config'),
+    apiGet('topics-config'),
+  ]);
+  state.schedule     = (sched && Object.keys(sched).length > 0) ? sched : deepClone(DEFAULT_SCHEDULE);
+  ['weekday','saturday','sunday'].forEach(t => {
+    if (state.schedule[t]) state.schedule[t].sort((a,b) => toMins(a.start) - toMins(b.start));
+  });
+  state.habits       = habits   || {};
+  state.learning     = learning || {};
+  state.habitsConfig = (habitsConfig && habitsConfig.length > 0) ? habitsConfig : deepClone(DEFAULT_HABITS);
+  state.topicsConfig = (topicsConfig && topicsConfig.length > 0) ? topicsConfig : deepClone(DEFAULT_TOPICS);
+}
+
+function openProfileModal() {
+  document.getElementById('profileDropdown').classList.remove('open');
+  document.getElementById('profileNameInput').value  = '';
+  document.getElementById('profileColorInput').value = '#8b5cf6';
+  document.getElementById('profileOverlay').classList.add('open');
+  document.getElementById('profileNameInput').focus();
+}
+
+function closeProfileModal() {
+  document.getElementById('profileOverlay').classList.remove('open');
+}
+
+async function confirmAddProfile() {
+  const name  = document.getElementById('profileNameInput').value.trim();
+  const color = document.getElementById('profileColorInput').value;
+  if (!name) { showToast('Please enter a name', '#dc2626'); return; }
+  try {
+    const resp    = await fetch('/api/profiles', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ name, color }),
+    });
+    const profile = await resp.json();
+    if (!resp.ok) throw new Error(profile.error);
+    state.profiles.push(profile);
+    closeProfileModal();
+    await switchProfile(profile.id);
+  } catch(e) {
+    showToast(`⚠️ ${e.message}`, '#dc2626');
+  }
+}
+
+async function deleteProfile(pid) {
+  const p = state.profiles.find(x => x.id === pid);
+  if (!p) return;
+  if (!confirm(`Remove profile "${p.name}"? All their data will be permanently deleted.`)) return;
+  try {
+    const resp   = await fetch(`/api/profiles/${pid}`, { method: 'DELETE' });
+    const result = await resp.json();
+    if (!resp.ok) throw new Error(result.error);
+    state.profiles = state.profiles.filter(x => x.id !== pid);
+    if (state.profileId === pid) {
+      state.profileId = state.profiles[0].id;
+      state.weekPlan  = null;
+      state.planStale = false;
+      clearPlanStale();
+      await loadProfileData();
+      renderToday();
+    }
+    renderProfileSwitcher();
+    showToast(`✓ Profile "${p.name}" removed`);
+  } catch(e) {
+    showToast(`⚠️ ${e.message}`, '#dc2626');
+  }
+}
+
+// =====================================================================
+// BOOT — load data from server, then render
+// =====================================================================
+
+async function boot() {
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  // Step 1: load profiles
+  try {
+    const profilesData = await fetch('/api/profiles').then(r => r.json());
+    state.profiles = Array.isArray(profilesData) ? profilesData : [];
+  } catch { state.profiles = []; }
+
+  if (state.profiles.length === 0) {
+    showToast('⚠️ No profiles found — is the server running?', '#dc2626');
+    return;
+  }
+
+  // Default to first profile
+  state.profileId = state.profiles[0].id;
+  renderProfileSwitcher();
+
+  // Step 2: load profile-specific data
+  await loadProfileData();
+
+  renderToday();
+
+  setInterval(()=>{
+    if(document.getElementById('view-today').classList.contains('active')) renderToday();
+  }, 60000);
+}
+
+document.getElementById('logOverlay').addEventListener('click',     function(e){ if(e.target===this) closeModal(); });
+document.getElementById('habitOverlay').addEventListener('click',   function(e){ if(e.target===this) closeHabitModal(); });
+document.getElementById('topicOverlay').addEventListener('click',   function(e){ if(e.target===this) closeTopicModal(); });
+document.getElementById('profileOverlay').addEventListener('click', function(e){ if(e.target===this) closeProfileModal(); });
+
+boot();
+</script>
+</body>
+</html>
