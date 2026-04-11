@@ -25,6 +25,18 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Touch optimisations ───────────────────────────────────────────────── */
+/* Remove 300ms tap delay across the whole app */
+html { touch-action: manipulation; }
+/* Suppress stuck hover styles on touch devices */
+@media (hover: none) {
+  .t-block:hover, nav button:hover, .check-btn:hover, .l-log-btn:hover,
+  .del-btn:hover, .add-btn:hover, .save-btn:hover, .reset-btn:hover,
+  .profile-btn:hover, .profile-dropdown-item:hover, .profile-add-btn:hover,
+  .profile-del-icon:hover, .habit-del-btn:hover, .topic-edit-btn:hover,
+  .topic-del-btn:hover, .add-item-btn:hover, .stale-bar button:hover { filter: none; background: unset; opacity: 1; }
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   background: var(--bg);
@@ -170,6 +182,7 @@ main { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
   display: flex; align-items: center; justify-content: center;
   font-size: 0.6rem; color: var(--muted);
   cursor: pointer; transition: background 0.1s, border-color 0.1s;
+  min-width: 28px; min-height: 28px;
 }
 .hday.done   { background: #059669; border-color: #059669; color: white; }
 .hday.today  { border-color: var(--accent); }
@@ -247,8 +260,9 @@ main { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
 .e-sep { font-size: 0.75rem; color: var(--muted); }
 .del-btn {
   background: rgba(220,38,38,0.18); border: 1px solid rgba(220,38,38,0.3);
-  color: #f87171; padding: 0.35rem 0.625rem; border-radius: 5px;
+  color: #f87171; padding: 0.5rem 0.75rem; border-radius: 5px;
   cursor: pointer; font-size: 0.8rem; white-space: nowrap; transition: background 0.15s;
+  min-height: 36px;
 }
 .del-btn:hover { background: rgba(220,38,38,0.3); }
 .add-btn {
@@ -277,6 +291,37 @@ main { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
   align-items: center; justify-content: center; padding: 1rem;
 }
 .overlay.open { display: flex; }
+
+/* ── Schedule alert ────────────────────────────────────────────────────── */
+#alertOverlay { z-index: 600; background: rgba(0,0,0,0.9); }
+.alert-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 20px; padding: 2rem 1.5rem;
+  width: 380px; max-width: calc(100vw - 2rem);
+  text-align: center;
+  animation: alertPop 0.2s ease-out;
+}
+@keyframes alertPop {
+  from { transform: scale(0.88); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+.alert-icon    { font-size: 2.8rem; margin-bottom: 0.75rem; }
+.alert-profile { display: flex; align-items: center; justify-content: center; gap: 0.4rem; margin-bottom: 0.6rem; }
+.alert-avatar  { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: white; }
+.alert-pname   { font-size: 0.78rem; color: var(--muted); font-weight: 600; }
+.alert-label   { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 0.5rem; }
+.alert-name    { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.35rem; line-height: 1.2; }
+.alert-time    { font-size: 0.9rem; color: var(--muted); margin-bottom: 0.85rem; }
+.alert-cat     { display: inline-block; padding: 0.2rem 0.85rem; border-radius: 999px; font-size: 0.72rem; font-weight: 600; text-transform: capitalize; margin-bottom: 1.25rem; }
+.alert-sound   { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.75rem; min-height: 1.2em; }
+.alert-queue   { font-size: 0.72rem; color: var(--muted); margin-bottom: 1rem; min-height: 1em; }
+.alert-ok {
+  width: 100%; padding: 0.95rem; border: none; border-radius: 12px;
+  background: var(--accent); color: white;
+  font-size: 1.05rem; font-weight: 700; cursor: pointer;
+  min-height: 52px; transition: opacity 0.15s;
+}
+.alert-ok:active { opacity: 0.85; }
 .modal {
   background: var(--surface); border: 1px solid var(--border);
   border-radius: 14px; padding: 1.5rem; width: 400px; max-width: 100%;
@@ -673,6 +718,21 @@ main { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
       <button class="mbtn-cancel" onclick="closeProfileModal()">Cancel</button>
       <button class="mbtn-confirm" onclick="confirmAddProfile()">Create Profile</button>
     </div>
+  </div>
+</div>
+
+<!-- Schedule alert — only OK button dismisses, no outside-click close -->
+<div class="overlay" id="alertOverlay">
+  <div class="alert-card">
+    <div class="alert-icon">⏰</div>
+    <div class="alert-profile" id="alertProfile"></div>
+    <div class="alert-label">Time for your next block</div>
+    <div class="alert-name"  id="alertName"></div>
+    <div class="alert-time"  id="alertTime"></div>
+    <div class="alert-cat"   id="alertCat"></div>
+    <div class="alert-sound" id="alertSound">🔊 Alarm playing...</div>
+    <div class="alert-queue" id="alertQueue"></div>
+    <button class="alert-ok" onclick="dismissAlert()">OK — Got it</button>
   </div>
 </div>
 
@@ -1458,6 +1518,7 @@ async function saveSchedule() {
   }
   sortBlocks(tab);
   await apiPost('schedule', state.schedule);
+  allSchedules[state.profileId] = state.schedule; // keep alert cache in sync
   markPlanStale();
   showToast('✓ Schedule saved to disk!');
 }
@@ -1563,8 +1624,8 @@ async function loadProfileData() {
   });
   state.habits       = habits   || {};
   state.learning     = learning || {};
-  state.habitsConfig = (habitsConfig && habitsConfig.length > 0) ? habitsConfig : deepClone(DEFAULT_HABITS);
-  state.topicsConfig = (topicsConfig && topicsConfig.length > 0) ? topicsConfig : deepClone(DEFAULT_TOPICS);
+  state.habitsConfig = habitsConfig || [];
+  state.topicsConfig = topicsConfig || [];
 }
 
 function openProfileModal() {
@@ -1593,6 +1654,17 @@ async function confirmAddProfile() {
     if (!resp.ok) throw new Error(profile.error);
     state.profiles.push(profile);
     closeProfileModal();
+    // Seed defaults into DB before switching so loadProfileData finds real data
+    const seedPost = (key, data) => fetch(`/api/${profile.id}/${key}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    await Promise.all([
+      seedPost('topics-config', deepClone(DEFAULT_TOPICS)),
+      seedPost('habits-config', deepClone(DEFAULT_HABITS)),
+    ]);
+    allSchedules[profile.id] = {}; // new profile starts with empty schedule
     await switchProfile(profile.id);
   } catch(e) {
     showToast(`⚠️ ${e.message}`, '#dc2626');
@@ -1608,6 +1680,7 @@ async function deleteProfile(pid) {
     const result = await resp.json();
     if (!resp.ok) throw new Error(result.error);
     state.profiles = state.profiles.filter(x => x.id !== pid);
+    delete allSchedules[pid]; // remove from alert cache
     if (state.profileId === pid) {
       state.profileId = state.profiles[0].id;
       state.weekPlan  = null;
@@ -1646,20 +1719,162 @@ async function boot() {
   state.profileId = state.profiles[0].id;
   renderProfileSwitcher();
 
-  // Step 2: load profile-specific data
-  await loadProfileData();
+  // Step 2: load profile-specific data + all schedules for the alert system
+  await Promise.all([loadProfileData(), loadAllSchedules()]);
 
   renderToday();
 
   setInterval(()=>{
     if(document.getElementById('view-today').classList.contains('active')) renderToday();
   }, 60000);
+
+  // Start the alert checker (runs every 30s; also fires immediately on load)
+  setInterval(checkAlerts, 30000);
+  checkAlerts();
 }
 
 document.getElementById('logOverlay').addEventListener('click',     function(e){ if(e.target===this) closeModal(); });
 document.getElementById('habitOverlay').addEventListener('click',   function(e){ if(e.target===this) closeHabitModal(); });
 document.getElementById('topicOverlay').addEventListener('click',   function(e){ if(e.target===this) closeTopicModal(); });
 document.getElementById('profileOverlay').addEventListener('click', function(e){ if(e.target===this) closeProfileModal(); });
+
+// ── Alert system ─────────────────────────────────────────────────────────
+
+// Schedule cache for ALL profiles — { profileId: schedule }
+// Keeps alerts working regardless of which profile is active.
+const allSchedules  = {};
+const firedAlerts   = new Set(); // "YYYY-MM-DD_profileId_HH:MM" — clears on reload
+const alertQueue    = [];        // [{ block, profile }] — shown one at a time
+let _alarmCtx       = null;
+let _alarmStopTimer = null;
+
+async function loadAllSchedules() {
+  for (const p of state.profiles) {
+    try {
+      const r = await fetch(`/api/${p.id}/schedule`);
+      allSchedules[p.id] = r.ok ? await r.json() : {};
+    } catch { allSchedules[p.id] = {}; }
+  }
+}
+
+const ALERT_CAT = {
+  wellness: { bg:'rgba(124,58,237,0.2)',  color:'#c4b5fd' },
+  learning: { bg:'rgba(37,99,235,0.2)',   color:'#93c5fd' },
+  work:     { bg:'rgba(220,38,38,0.2)',   color:'#fca5a5' },
+  personal: { bg:'rgba(71,85,105,0.2)',   color:'#94a3b8' },
+  commute:  { bg:'rgba(217,119,6,0.2)',   color:'#fcd34d' },
+  chores:   { bg:'rgba(5,150,105,0.2)',   color:'#6ee7b7' },
+  blocked:  { bg:'rgba(51,65,85,0.3)',    color:'#64748b' },
+  sleep:    { bg:'rgba(15,23,42,0.5)',    color:'#475569' },
+};
+
+function _scheduleBeep(ctx, freq, t, dur) {
+  const osc  = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.type = 'sine';
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, t);
+  gain.gain.linearRampToValueAtTime(0.45, t + 0.01);
+  gain.gain.setValueAtTime(0.45, t + dur - 0.02);
+  gain.gain.linearRampToValueAtTime(0, t + dur);
+  osc.start(t);
+  osc.stop(t + dur + 0.01);
+}
+
+function startAlarm() {
+  try {
+    _alarmCtx = new (window.AudioContext || window.webkitAudioContext)();
+    _alarmCtx.resume();
+    const now    = _alarmCtx.currentTime;
+    const TOTAL  = 60;
+    const CYCLE  = 0.75;
+    for (let i = 0; i < Math.floor(TOTAL / CYCLE); i++) {
+      const t = now + i * CYCLE;
+      _scheduleBeep(_alarmCtx, 880, t,       0.13);
+      _scheduleBeep(_alarmCtx, 660, t + 0.2, 0.13);
+    }
+  } catch(e) { console.warn('Web Audio not available:', e); }
+
+  _alarmStopTimer = setTimeout(() => {
+    stopAlarm();
+    const el = document.getElementById('alertSound');
+    if (el) el.textContent = '🔕 Alarm stopped — tap OK when ready';
+  }, 60000);
+}
+
+function stopAlarm() {
+  if (_alarmStopTimer) { clearTimeout(_alarmStopTimer); _alarmStopTimer = null; }
+  if (_alarmCtx) { try { _alarmCtx.close(); } catch(e) {} _alarmCtx = null; }
+}
+
+function _renderAlert(block, profile) {
+  const cat = ALERT_CAT[block.category] || ALERT_CAT.personal;
+
+  // Profile badge
+  const profileEl = document.getElementById('alertProfile');
+  profileEl.innerHTML = `
+    <div class="alert-avatar" style="background:${profile.color}">${profile.name[0].toUpperCase()}</div>
+    <span class="alert-pname">${profile.name}</span>`;
+
+  document.getElementById('alertName').textContent  = block.name;
+  document.getElementById('alertTime').textContent  = `${block.start} – ${block.end}`;
+  document.getElementById('alertSound').textContent = '🔊 Alarm playing...';
+
+  const catEl = document.getElementById('alertCat');
+  catEl.textContent      = block.category;
+  catEl.style.background = cat.bg;
+  catEl.style.color      = cat.color;
+
+  // Show queue depth if more alerts are waiting
+  const qEl = document.getElementById('alertQueue');
+  qEl.textContent = alertQueue.length > 1
+    ? `+${alertQueue.length - 1} more alert${alertQueue.length - 1 > 1 ? 's' : ''} waiting`
+    : '';
+}
+
+function _showNextAlert() {
+  if (alertQueue.length === 0) return;
+  const { block, profile } = alertQueue[0];
+  _renderAlert(block, profile);
+  document.getElementById('alertOverlay').classList.add('open');
+  startAlarm();
+}
+
+function enqueueAlert(block, profile) {
+  alertQueue.push({ block, profile });
+  if (alertQueue.length === 1) _showNextAlert(); // first in queue — show immediately
+}
+
+function dismissAlert() {
+  stopAlarm();
+  alertQueue.shift(); // remove acknowledged alert
+  if (alertQueue.length > 0) {
+    setTimeout(_showNextAlert, 300); // brief pause before next
+  } else {
+    document.getElementById('alertOverlay').classList.remove('open');
+  }
+}
+
+function checkAlerts() {
+  if (!state.profiles.length) return;
+  const now     = new Date();
+  const curMins = now.getHours() * 60 + now.getMinutes();
+  const dt      = dayType(now);
+
+  for (const profile of state.profiles) {
+    const schedule = allSchedules[profile.id];
+    if (!schedule) continue;
+    for (const block of (schedule[dt] || [])) {
+      const key = `${todayKey()}_${profile.id}_${block.start}`;
+      if (Math.abs(curMins - toMins(block.start)) <= 1 && !firedAlerts.has(key)) {
+        firedAlerts.add(key);
+        enqueueAlert(block, profile);
+      }
+    }
+  }
+}
 
 boot();
 </script>
