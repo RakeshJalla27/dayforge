@@ -64,6 +64,7 @@ nav {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   display: flex;
+  justify-content: center;
   overflow-x: auto;
   padding: 0 1rem;
   -webkit-overflow-scrolling: touch;
@@ -89,13 +90,14 @@ main { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
 .view { display: none; }
 .view.active { display: block; }
 
-.section-hd { margin-bottom: 1.25rem; }
+.section-hd { margin-bottom: 1.25rem; text-align: center; }
 .section-hd h2 { font-size: 1.2rem; font-weight: 700; }
 .section-hd p { color: var(--muted); font-size: 0.825rem; margin-top: 0.2rem; }
 
 .legend {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.625rem;
   margin-bottom: 1.25rem;
 }
@@ -338,6 +340,35 @@ main { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
 .modal-btns button { flex: 1; padding: 0.6rem; border-radius: 7px; cursor: pointer; font-size: 0.875rem; border: none; font-weight: 500; }
 .mbtn-cancel  { background: var(--surface2); color: var(--text); }
 .mbtn-confirm { background: var(--accent); color: white; }
+
+/* ── Day detail popup ──────────────────────────────────────────────────── */
+.day-detail-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; width: 480px; max-width: calc(100vw - 2rem);
+  max-height: 85vh; display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.day-detail-hd {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  padding: 1.25rem 1.25rem 0.75rem; border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.day-detail-name { font-size: 1.15rem; font-weight: 700; color: var(--fg); }
+.day-detail-date { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+.day-detail-close {
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  width: 28px; height: 28px; border-radius: 50%; cursor: pointer;
+  font-size: 0.75rem; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.day-detail-focus {
+  font-size: 0.78rem; color: var(--accent); padding: 0.5rem 1.25rem;
+  flex-shrink: 0;
+}
+.day-detail-focus:empty { display: none; }
+.day-detail-tl {
+  overflow-y: auto; padding: 0.75rem 1.25rem 1.25rem; flex: 1;
+}
 
 /* ===== STALE PLAN INDICATOR ===== */
 .stale-dot {
@@ -738,6 +769,21 @@ main { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
 
 <div class="toast" id="toast"></div>
 
+<!-- Day detail popup -->
+<div class="overlay" id="dayDetailOverlay">
+  <div class="day-detail-card">
+    <div class="day-detail-hd">
+      <div>
+        <div class="day-detail-name" id="dayDetailName"></div>
+        <div class="day-detail-date" id="dayDetailDate"></div>
+      </div>
+      <button class="day-detail-close" onclick="closeDayDetail()">✕</button>
+    </div>
+    <div class="day-detail-focus" id="dayDetailFocus"></div>
+    <div class="day-detail-tl" id="dayDetailTL"></div>
+  </div>
+</div>
+
 <script>
 // =====================================================================
 // STATIC DATA (schedule templates, topics, habits)
@@ -1027,6 +1073,8 @@ function renderDayCard(day, aiDay) {
 
   const card = document.createElement('div');
   card.className = `week-card ${isToday ? 'is-today' : ''}`;
+  card.style.cursor = 'pointer';
+  card.addEventListener('click', () => openDayDetail(day));
 
   const label     = day.toLocaleDateString('en-US', {weekday:'long'});
   const dateLabel = day.toLocaleDateString('en-US', {month:'short', day:'numeric'});
@@ -1078,6 +1126,51 @@ function renderDayCard(day, aiDay) {
   }
 
   return card;
+}
+
+// ── Day detail popup ──────────────────────────────────────────────────────
+
+function openDayDetail(day) {
+  const dt     = dayType(day);
+  const blocks = state.schedule[dt] || [];
+  const topic  = topicForDay(day);
+  const now    = new Date();
+  const isToday = dateKey(day) === todayKey();
+
+  document.getElementById('dayDetailName').textContent = day.toLocaleDateString('en-US', {weekday:'long'});
+  document.getElementById('dayDetailDate').textContent = day.toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'});
+  document.getElementById('dayDetailFocus').textContent = topic ? `📚 Learning focus: ${topic.name}` : '';
+
+  const tl = document.getElementById('dayDetailTL');
+  tl.innerHTML = '';
+  const curMins = now.getHours() * 60 + now.getMinutes();
+  let injected = false;
+
+  [...blocks].sort((a,b) => toMins(a.start) - toMins(b.start)).forEach(b => {
+    if (isToday && !injected && toMins(b.start) > curMins) {
+      tl.appendChild(makeNowLine(now)); injected = true;
+    }
+    const isGenericLearning = b.topic === 'auto' && b.category === 'learning' && b.name.startsWith('Learning Block');
+    const nm = isGenericLearning
+      ? `${b.name} <span style="opacity:0.65;font-weight:400;font-size:0.75rem;">— ${topic?.name || 'Learning'}</span>`
+      : b.name;
+    const row = document.createElement('div');
+    row.className = 't-row';
+    row.innerHTML = `
+      <div class="t-time">${fmtTime(b.start)}</div>
+      <div class="t-block cat-${b.category} ${isToday && isCurrent(b) ? 'current' : ''}">
+        <div class="t-name">${nm}</div>
+        <div class="t-dur">${durStr(b.start, b.end)}</div>
+      </div>`;
+    tl.appendChild(row);
+  });
+  if (isToday && !injected) tl.appendChild(makeNowLine(now));
+
+  document.getElementById('dayDetailOverlay').classList.add('open');
+}
+
+function closeDayDetail() {
+  document.getElementById('dayDetailOverlay').classList.remove('open');
 }
 
 function catColor(cat) {
@@ -1733,10 +1826,11 @@ async function boot() {
   checkAlerts();
 }
 
-document.getElementById('logOverlay').addEventListener('click',     function(e){ if(e.target===this) closeModal(); });
-document.getElementById('habitOverlay').addEventListener('click',   function(e){ if(e.target===this) closeHabitModal(); });
-document.getElementById('topicOverlay').addEventListener('click',   function(e){ if(e.target===this) closeTopicModal(); });
-document.getElementById('profileOverlay').addEventListener('click', function(e){ if(e.target===this) closeProfileModal(); });
+document.getElementById('logOverlay').addEventListener('click',       function(e){ if(e.target===this) closeModal(); });
+document.getElementById('habitOverlay').addEventListener('click',     function(e){ if(e.target===this) closeHabitModal(); });
+document.getElementById('topicOverlay').addEventListener('click',     function(e){ if(e.target===this) closeTopicModal(); });
+document.getElementById('profileOverlay').addEventListener('click',   function(e){ if(e.target===this) closeProfileModal(); });
+document.getElementById('dayDetailOverlay').addEventListener('click', function(e){ if(e.target===this) closeDayDetail(); });
 
 // ── Alert system ─────────────────────────────────────────────────────────
 

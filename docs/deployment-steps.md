@@ -250,7 +250,31 @@ The app is touch-optimised for a 10-inch monitor:
 - Minimum tap target sizes on small buttons and habit calendar cells
 - On-screen keyboard works for schedule editing
 
-The Pi browser (Chromium) handles all interactions natively — no extra configuration needed for touch.
+There is no mouse cursor when using a touch screen — everything is finger-driven. Chromium handles all interactions natively with no extra configuration.
+
+---
+
+## Step 10 — Launch in kiosk mode (touchscreen)
+
+Run Chromium full-screen with no browser chrome and no cursor:
+
+```bash
+chromium-browser --kiosk --noerrdialogs --disable-infobars http://localhost:8765
+```
+
+To launch this automatically on boot, add it to the Pi's autostart after the Docker app is running:
+
+```bash
+mkdir -p ~/.config/autostart
+cat > ~/.config/autostart/dayforge.desktop <<EOF
+[Desktop Entry]
+Type=Application
+Name=DayForge
+Exec=chromium-browser --kiosk --noerrdialogs --disable-infobars http://localhost:8765
+EOF
+```
+
+> The Docker app starts before the desktop via `restart: unless-stopped`, so Chromium will find the server ready on boot.
 
 ---
 
