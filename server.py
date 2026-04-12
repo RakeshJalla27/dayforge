@@ -17,6 +17,7 @@ import db.migrate as migrate
 from db.connection import close_pool, init_pool
 from db.queries import habits as habits_q
 from db.queries import learning as learning_q
+from db.queries import overrides as overrides_q
 from db.queries import profiles as profiles_q
 from db.queries import schedule as schedule_q
 
@@ -32,6 +33,7 @@ _READERS = {
     "habits-config": habits_q.get_habit_config,
     "learning":      learning_q.get_learning,
     "topics-config": learning_q.get_topic_config,
+    "overrides":     overrides_q.get_overrides,
 }
 _WRITERS = {
     "schedule":      schedule_q.save_schedule,
@@ -39,6 +41,7 @@ _WRITERS = {
     "habits-config": habits_q.save_habit_config,
     "learning":      learning_q.save_learning,
     "topics-config": learning_q.save_topic_config,
+    "overrides":     overrides_q.save_overrides,
 }
 
 
