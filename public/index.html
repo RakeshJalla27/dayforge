@@ -27,7 +27,7 @@
 
 /* ── Touch optimisations ───────────────────────────────────────────────── */
 /* Remove 300ms tap delay across the whole app */
-html { touch-action: manipulation; }
+button, input, select, textarea, a { touch-action: manipulation; }
 /* Suppress stuck hover styles on touch devices */
 @media (hover: none) {
   .t-block:hover, nav button:hover, .check-btn:hover, .l-log-btn:hover,

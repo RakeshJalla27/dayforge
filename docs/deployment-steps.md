@@ -259,8 +259,10 @@ There is no mouse cursor when using a touch screen — everything is finger-driv
 Run Chromium full-screen with no browser chrome and no cursor:
 
 ```bash
-chromium-browser --kiosk --noerrdialogs --disable-infobars http://localhost:8765
+chromium-browser --kiosk --noerrdialogs --disable-infobars --enable-virtual-keyboard http://localhost:8765
 ```
+
+The `--enable-virtual-keyboard` flag is required for the on-screen keyboard to appear when tapping text fields. Without it, Chromium in kiosk mode ignores the system OSK even though other apps trigger it fine.
 
 To launch this automatically on boot, add it to the Pi's autostart after the Docker app is running:
 
@@ -270,7 +272,7 @@ cat > ~/.config/autostart/dayforge.desktop <<EOF
 [Desktop Entry]
 Type=Application
 Name=DayForge
-Exec=chromium-browser --kiosk --noerrdialogs --disable-infobars http://localhost:8765
+Exec=chromium-browser --kiosk --noerrdialogs --disable-infobars --enable-virtual-keyboard http://localhost:8765
 EOF
 ```
 
