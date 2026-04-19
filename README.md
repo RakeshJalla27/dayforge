@@ -107,6 +107,94 @@ docker compose down -v          # stop AND wipe all data (destructive)
 
 ---
 
+## Migrating Postgres Data to the Raspberry Pi
+
+Use this when you already have a running DayForge instance (e.g. on your Mac) and want to carry all your data across to the Pi. This is a clean Postgres-to-Postgres transfer — no JSON import involved.
+
+### Step 1 — Dump from the source machine
+
+**If running via Docker Compose on your Mac:**
+
+```bash
+docker compose exec db pg_dump -U dayforge --no-owner --no-acl dayforge > dayforge_backup.sql
+```
+
+**If running Postgres locally (not in Docker):**
+
+```bash
+pg_dump -U dayforge --no-owner --no-acl dayforge > dayforge_backup.sql
+```
+
+`--no-owner --no-acl` strips ownership metadata so the dump restores cleanly on any Postgres instance regardless of user setup.
+
+### Step 2 — Copy the dump to the Pi
+
+```bash
+scp dayforge_backup.sql rakesh@dayforge.local:~/dayforge/
+```
+
+Replace `rakesh` and `dayforge.local` with your Pi's username and hostname (or IP address).
+
+### Step 3 — Clone the repo and configure on the Pi
+
+```bash
+# SSH into the Pi first
+ssh rakesh@dayforge.local
+
+git clone <repo-url> dayforge
+cd dayforge
+cp .env.example .env
+```
+
+Edit `.env` and set `DB_PASSWORD` to a strong password:
+
+```dotenv
+DB_PASSWORD=choose_a_strong_password
+ANTHROPIC_API_KEY=sk-ant-...   # optional
+```
+
+### Step 4 — Start only the database container
+
+```bash
+docker compose up -d db
+```
+
+Wait about 10 seconds for Postgres to be ready. You can confirm with:
+
+```bash
+docker compose exec db pg_isready -U dayforge -d dayforge
+```
+
+### Step 5 — Restore the dump
+
+```bash
+docker compose exec -T db psql -U dayforge dayforge < dayforge_backup.sql
+```
+
+### Step 6 — Start the full app
+
+```bash
+docker compose up -d
+```
+
+The app runs `migrate.py` on startup. Since the schema already exists in the restored dump (tracked in `schema_migrations`), all migrations are skipped automatically — no duplicate tables or errors.
+
+### Step 7 — Verify
+
+Open **http://\<pi-ip-address\>:8765** and confirm your profiles, schedule, habits, and learning data are all present.
+
+To double-check from the terminal:
+
+```bash
+# List all tables
+docker compose exec db psql -U dayforge dayforge -c "\dt"
+
+# Confirm profile data
+docker compose exec db psql -U dayforge dayforge -c "SELECT id, name FROM profiles;"
+```
+
+---
+
 ## Running on Mac (for testing)
 
 The same Docker Compose setup used on the Pi works identically on Mac. This is the recommended way to test before deploying to the Pi — same images, same flow, no surprises.
