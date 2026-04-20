@@ -341,6 +341,38 @@ main { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
 .mbtn-cancel  { background: var(--surface2); color: var(--text); }
 .mbtn-confirm { background: var(--accent); color: white; }
 
+/* ── On-screen keyboard ────────────────────────────────────────────────── */
+.osk-wrap {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0;
+  background: #1e293b; border-top: 1px solid var(--border);
+  padding: 0.5rem 0.5rem 0.75rem; z-index: 700;
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.5);
+}
+.osk-wrap.open { display: block; }
+.osk-toolbar {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 0.4rem; padding: 0 0.25rem;
+}
+.osk-label { font-size: 0.72rem; color: var(--muted); }
+.osk-close {
+  background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.3);
+  color: #f87171; padding: 0.25rem 0.75rem; border-radius: 6px;
+  cursor: pointer; font-size: 0.75rem; font-weight: 600;
+}
+.osk-row { display: flex; justify-content: center; gap: 4px; margin-bottom: 4px; }
+.osk-key {
+  background: #334155; border: 1px solid #475569; color: var(--fg);
+  border-radius: 6px; font-size: 1rem; font-weight: 500;
+  min-width: 40px; height: 44px; padding: 0 6px;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  user-select: none; -webkit-user-select: none; flex: 1; max-width: 52px;
+}
+.osk-key:active { background: #475569; }
+.osk-key.wide  { flex: 2; max-width: 110px; }
+.osk-key.space { flex: 5; max-width: 260px; }
+.osk-key.fn    { background: #1e3a5f; border-color: #2563eb; color: #93c5fd; font-size: 0.78rem; }
+.osk-key.fn:active { background: #2563eb; }
+
 /* ── Day detail popup ──────────────────────────────────────────────────── */
 .day-detail-card {
   background: var(--surface); border: 1px solid var(--border);
@@ -787,6 +819,15 @@ main { padding: 1.5rem; max-width: 1100px; margin: 0 auto; }
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- On-screen keyboard -->
+<div id="osk" class="osk-wrap">
+  <div class="osk-toolbar">
+    <span class="osk-label" id="oskLabel">Keyboard</span>
+    <button class="osk-close" id="oskClose">✕ Done</button>
+  </div>
+  <div id="oskKeys"></div>
+</div>
 
 <!-- Day detail popup -->
 <div class="overlay" id="dayDetailOverlay">
@@ -1988,6 +2029,125 @@ document.getElementById('habitOverlay').addEventListener('click',     function(e
 document.getElementById('topicOverlay').addEventListener('click',     function(e){ if(e.target===this) closeTopicModal(); });
 document.getElementById('profileOverlay').addEventListener('click',   function(e){ if(e.target===this) closeProfileModal(); });
 document.getElementById('dayDetailOverlay').addEventListener('click', function(e){ if(e.target===this) closeDayDetail(); });
+
+// ── On-screen keyboard ───────────────────────────────────────────────────
+
+(function () {
+  const SKIP_TYPES = new Set(['time', 'color', 'date', 'range', 'file', 'checkbox', 'radio', 'submit', 'button']);
+
+  const ROWS_ALPHA_LO = [
+    ['q','w','e','r','t','y','u','i','o','p'],
+    ['a','s','d','f','g','h','j','k','l'],
+    ['⇧','z','x','c','v','b','n','m','⌫'],
+    ['123',' ','↵','✕'],
+  ];
+  const ROWS_ALPHA_HI = [
+    ['Q','W','E','R','T','Y','U','I','O','P'],
+    ['A','S','D','F','G','H','J','K','L'],
+    ['⇧','Z','X','C','V','B','N','M','⌫'],
+    ['123',' ','↵','✕'],
+  ];
+  const ROWS_NUM = [
+    ['1','2','3','4','5','6','7','8','9','0'],
+    ['!','@','#','$','%','^','&','*','(',')'],
+    ['-','_','=','+','[',']',';',"'",'.',','],
+    ['ABC',' ','↵','✕'],
+  ];
+
+  let _target = null;
+  let _shift  = false;
+  let _mode   = 'lo'; // 'lo' | 'hi' | 'num'
+
+  function rows() {
+    if (_mode === 'num') return ROWS_NUM;
+    return _mode === 'hi' ? ROWS_ALPHA_HI : ROWS_ALPHA_LO;
+  }
+
+  function render() {
+    const container = document.getElementById('oskKeys');
+    container.innerHTML = '';
+    rows().forEach(row => {
+      const rowEl = document.createElement('div');
+      rowEl.className = 'osk-row';
+      row.forEach(k => {
+        const btn = document.createElement('button');
+        btn.className = 'osk-key';
+        btn.textContent = k;
+        if (k === ' ')   { btn.className += ' space'; btn.textContent = 'space'; }
+        else if (k === '↵' || k === '✕' || k === '⌫' || k === '⇧' || k === '123' || k === 'ABC')
+          btn.className += ' fn';
+        else if (k.length > 1) btn.className += ' wide';
+        btn.addEventListener('pointerdown', e => { e.preventDefault(); handleKey(k); });
+        rowEl.appendChild(btn);
+      });
+      container.appendChild(rowEl);
+    });
+  }
+
+  function handleKey(k) {
+    if (!_target) return;
+    if (k === '✕') { hide(); return; }
+    if (k === '⇧') { _mode = _mode === 'hi' ? 'lo' : 'hi'; render(); return; }
+    if (k === '123') { _mode = 'num'; render(); return; }
+    if (k === 'ABC') { _mode = 'lo'; render(); return; }
+
+    _target.focus();
+    if (k === '↵') {
+      _target.dispatchEvent(new KeyboardEvent('keydown', {key:'Enter', bubbles:true}));
+      hide(); return;
+    }
+    if (k === '⌫') {
+      const s = _target.selectionStart, e = _target.selectionEnd;
+      if (s !== e) {
+        insertAt('');
+      } else if (s > 0) {
+        _target.setSelectionRange(s - 1, s);
+        insertAt('');
+      }
+    } else {
+      insertAt(k);
+      // Auto-shift off after first letter
+      if (_mode === 'hi') { _mode = 'lo'; render(); }
+    }
+    _target.dispatchEvent(new Event('input', {bubbles:true}));
+    _target.dispatchEvent(new Event('change', {bubbles:true}));
+  }
+
+  function insertAt(char) {
+    const s = _target.selectionStart, e = _target.selectionEnd;
+    const v = _target.value;
+    _target.value = v.slice(0, s) + char + v.slice(e);
+    const pos = s + char.length;
+    _target.setSelectionRange(pos, pos);
+  }
+
+  function show(el) {
+    _target = el;
+    _mode   = 'lo';
+    const label = el.placeholder || el.name || 'Keyboard';
+    document.getElementById('oskLabel').textContent = label;
+    render();
+    document.getElementById('osk').classList.add('open');
+  }
+
+  function hide() {
+    document.getElementById('osk').classList.remove('open');
+    _target = null;
+  }
+
+  // Show on focus for text-like inputs and textareas
+  document.addEventListener('focusin', e => {
+    const el = e.target;
+    if ((el.tagName === 'INPUT' && !SKIP_TYPES.has(el.type)) || el.tagName === 'TEXTAREA') {
+      show(el);
+    }
+  });
+
+  document.getElementById('oskClose').addEventListener('pointerdown', e => {
+    e.preventDefault();
+    hide();
+  });
+}());
 
 // ── Alert system ─────────────────────────────────────────────────────────
 
