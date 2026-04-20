@@ -2078,6 +2078,7 @@ document.getElementById('dayDetailOverlay').addEventListener('click', function(e
           btn.className += ' fn';
         else if (k.length > 1) btn.className += ' wide';
         btn.addEventListener('pointerdown', e => { e.preventDefault(); handleKey(k); });
+        btn.addEventListener('mousedown',   e => { e.preventDefault(); });
         rowEl.appendChild(btn);
       });
       container.appendChild(rowEl);
@@ -2142,6 +2143,9 @@ document.getElementById('dayDetailOverlay').addEventListener('click', function(e
       show(el);
     }
   });
+
+  // Prevent any click/touch on the keyboard from blurring the active input
+  document.getElementById('osk').addEventListener('mousedown', e => e.preventDefault());
 
   document.getElementById('oskClose').addEventListener('pointerdown', e => {
     e.preventDefault();
