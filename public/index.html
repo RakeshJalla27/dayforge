@@ -1910,7 +1910,10 @@ async function loadProfileData() {
   ]);
   state.schedule     = (sched && Object.keys(sched).length > 0) ? sched : deepClone(DEFAULT_SCHEDULE);
   ['weekday','saturday','sunday'].forEach(t => {
-    if (state.schedule[t]) state.schedule[t].sort((a,b) => toMins(a.start) - toMins(b.start));
+    if (state.schedule[t]) {
+      state.schedule[t].sort((a,b) => toMins(a.start) - toMins(b.start));
+      state.schedule[t].forEach((b, i) => { if (!b.id) b.id = Date.now() + i; });
+    }
   });
   state.habits       = habits     || {};
   state.learning     = learning   || {};
@@ -2216,7 +2219,7 @@ function startAlarm() {
     stopAlarm();
     const el = document.getElementById('alertSound');
     if (el) el.textContent = '🔕 Alarm stopped — tap OK when ready';
-  }, 60000);
+  }, 30000);
 }
 
 function stopAlarm() {
