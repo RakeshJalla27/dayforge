@@ -160,6 +160,12 @@ class Handler(SimpleHTTPRequestHandler):
         else:
             self.send_error(404)
 
+    def do_PATCH(self):
+        if self.path.startswith("/api/profiles/"):
+            self._handle_update_profile(self._read_body())
+        else:
+            self.send_error(404)
+
     def do_DELETE(self):
         if self.path.startswith("/api/profiles/"):
             self._handle_delete_profile()
@@ -212,8 +218,11 @@ class Handler(SimpleHTTPRequestHandler):
     # ── Profile CRUD ─────────────────────────────────────────────────────
 
     def _handle_create_profile(self, body: dict):
-        name  = (body.get("name") or "").strip()
-        color = body.get("color", "#3b82f6")
+        name     = (body.get("name") or "").strip()
+        color    = body.get("color", "#3b82f6")
+        dob      = body.get("dob") or None
+        gender   = body.get("gender") or None
+        kid_mode = bool(body.get("kid_mode", False))
         if not name:
             self._json_response(400, {"error": "Name is required"})
             return
@@ -226,8 +235,24 @@ class Handler(SimpleHTTPRequestHandler):
             pid = f"{base}_{n}"
             n += 1
 
-        profiles_q.create_profile(pid, name, color)
-        self._json_ok({"id": pid, "name": name, "color": color})
+        profile = profiles_q.create_profile(pid, name, color, dob, gender, kid_mode)
+        self._json_ok(profile)
+
+    def _handle_update_profile(self, body: dict):
+        pid      = self.path[len("/api/profiles/"):].strip("/")
+        name     = (body.get("name") or "").strip()
+        color    = body.get("color", "#3b82f6")
+        dob      = body.get("dob") or None
+        gender   = body.get("gender") or None
+        kid_mode = bool(body.get("kid_mode", False))
+        if not name:
+            self._json_response(400, {"error": "Name is required"})
+            return
+        if not profiles_q.profile_exists(pid):
+            self._json_response(404, {"error": "Profile not found"})
+            return
+        profile = profiles_q.update_profile(pid, name, color, dob, gender, kid_mode)
+        self._json_ok(profile)
 
     def _handle_delete_profile(self):
         pid = self.path[len("/api/profiles/"):].strip("/")
@@ -325,7 +350,7 @@ def main():
 
     # Seed a default profile if the database is empty
     if profiles_q.count_profiles() == 0:
-        profiles_q.create_profile("rakesh", "Rakesh", "#3b82f6")
+        profiles_q.create_profile("rakesh", "Rakesh", "#3b82f6", kid_mode=False)
         print("  [db] Created default profile: Rakesh")
 
     server     = HTTPServer(("0.0.0.0", PORT), Handler)
