@@ -14,12 +14,12 @@
   --surface:  #0e0e12;
   --surface2: #14141a;
   --surface3: #1a1a22;
-  --glass:    rgba(255,255,255,0.04);
-  --glass-bright: rgba(255,255,255,0.07);
+  --glass:    rgba(255,255,255,0.08);
+  --glass-bright: rgba(255,255,255,0.13);
 
   /* ── Borders ─────────────────────────────────── */
-  --border:       rgba(255,255,255,0.07);
-  --border-bright: rgba(255,255,255,0.13);
+  --border:       rgba(255,255,255,0.10);
+  --border-bright: rgba(255,255,255,0.20);
 
   /* ── Text ────────────────────────────────────── */
   --text:  #f1f5f9;
@@ -132,8 +132,6 @@ body {
 
 header {
   background: rgba(6,6,8,0.75);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
   border-bottom: 1px solid var(--border);
   padding: 0.75rem 1.5rem;
   display: flex;
@@ -197,8 +195,6 @@ header {
   width: 64px;
   flex-shrink: 0;
   background: rgba(6,6,8,0.80);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
@@ -368,8 +364,6 @@ main {
   text-align: center; padding: 0.5rem;
   background: var(--glass); border-radius: var(--r-md);
   margin-bottom: 0.4rem; border: 1px solid var(--border);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
 }
 .day-hd.is-today {
   background: var(--accent-soft);
@@ -393,8 +387,6 @@ main {
 .habits-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 1rem; }
 .habit-card {
   background: var(--glass);
-  backdrop-filter: blur(16px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   padding: 1.1rem;
@@ -451,8 +443,6 @@ main {
 .learning-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
 .lcard {
   background: var(--glass);
-  backdrop-filter: blur(16px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
   border: 1px solid var(--border);
   border-radius: var(--r-lg); padding: 1.1rem;
   transition: border-color var(--dur-fast) var(--ease-out),
@@ -569,8 +559,6 @@ main {
 .overlay {
   display: none; position: fixed; inset: 0;
   background: rgba(0,0,0,0.75);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
   z-index: 200;
   align-items: center; justify-content: center; padding: 1rem;
 }
@@ -610,8 +598,6 @@ main {
 .alert-ok:active { opacity: 0.85; }
 .modal {
   background: var(--surface);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid var(--border-bright);
   box-shadow: 0 24px 64px rgba(0,0,0,0.6);
   border-radius: var(--r-xl); padding: 1.5rem; width: 400px; max-width: 100%;
@@ -754,8 +740,6 @@ main {
 .osk-wrap {
   display: none; position: fixed; bottom: 0; left: 0; right: 0;
   background: rgba(14,14,18,0.92);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
   border-top: 1px solid var(--border-bright);
   padding: 0.5rem 0.5rem 0.75rem; z-index: 700;
   box-shadow: 0 -8px 32px rgba(0,0,0,0.6);
@@ -789,8 +773,6 @@ main {
 /* ── Day detail popup ──────────────────────────────────────────────────── */
 .day-detail-card {
   background: var(--surface);
-  backdrop-filter: blur(24px) saturate(160%);
-  -webkit-backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid var(--border-bright);
   box-shadow: 0 24px 64px rgba(0,0,0,0.7);
   border-radius: var(--r-xl); width: 480px; max-width: calc(100vw - 2rem);
@@ -863,8 +845,6 @@ main {
 /* ===== WEEK CARDS ===== */
 .week-card {
   background: var(--glass);
-  backdrop-filter: blur(16px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   padding: 1rem;
@@ -946,8 +926,6 @@ main {
 }
 .wk-col {
   background: var(--glass);
-  backdrop-filter: blur(16px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   display: flex;
@@ -1113,8 +1091,6 @@ main {
 .profile-dropdown {
   position: absolute; top: calc(100% + 8px); right: 0;
   background: var(--surface);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
   border: 1px solid var(--border-bright);
   border-radius: var(--r-lg); min-width: 190px; z-index: 100;
   box-shadow: 0 16px 48px rgba(0,0,0,0.6), 0 0 0 1px var(--border);
@@ -1188,8 +1164,6 @@ main {
   display: flex;
   flex-direction: column;
   background: var(--glass);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
   overflow: hidden;
@@ -1249,8 +1223,6 @@ main {
 .td-active-card {
   flex: 7;
   background: var(--glass);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
   padding: 1.5rem 1.75rem;
@@ -1382,8 +1354,6 @@ main {
 /* Clock block */
 .td-clock-wrap {
   background: var(--glass);
-  backdrop-filter: blur(16px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
   padding: 1rem 1.75rem;
@@ -1415,8 +1385,6 @@ main {
 }
 .td-stat-chip {
   background: var(--glass);
-  backdrop-filter: blur(12px) saturate(150%);
-  -webkit-backdrop-filter: blur(12px) saturate(150%);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   padding: 0.75rem 1rem;
@@ -1444,8 +1412,6 @@ main {
 /* ── Quote card ──────────────────────────────────────────────────────── */
 .td-quote-card {
   background: var(--glass);
-  backdrop-filter: blur(16px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
   border: 1px solid var(--border);
   border-radius: var(--r-xl);
   padding: 1.25rem 1.5rem;
@@ -3711,12 +3677,14 @@ async function deleteProfile(pid) {
     sleep:drawKidSleep
   };
 
+  let _tickN = 0;
   function tick() {
     if (!canvas || !activeCat) return;
+    raf = requestAnimationFrame(tick);
+    if (++_tickN % 5 !== 0) return; // ~12fps on 60Hz display
     const map = isKid() ? KID_DRAW_FN : DRAW_FN;
     const fn = map[activeCat];
     if (fn) fn();
-    raf = requestAnimationFrame(tick);
   }
 
   // ── Public API ──────────────────────────────────────────────────────
@@ -3757,6 +3725,15 @@ async function deleteProfile(pid) {
     resize();
     if (activeCat) init(activeCat);
   };
+
+  // Pause canvas when tab is hidden, resume when visible again
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (raf) { cancelAnimationFrame(raf); raf = null; }
+    } else if (activeCat && !raf) {
+      raf = requestAnimationFrame(tick);
+    }
+  });
 })();
 
 window.addEventListener('resize', () => {
