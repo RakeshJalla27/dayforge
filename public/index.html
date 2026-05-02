@@ -913,7 +913,14 @@ main {
   overflow: hidden;
 }
 /* Scrollable tabs: fill viewport height, scroll internally */
-#view-edit.active,
+/* Edit tab — no outer scroll, flex column */
+#view-edit.active {
+  display: flex !important;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+/* Habits + Learning still scroll at view level */
 #view-habits.active,
 #view-learning.active {
   height: 100%;
@@ -921,24 +928,120 @@ main {
   scrollbar-width: auto;
   scrollbar-color: rgba(255,255,255,0.22) rgba(255,255,255,0.04);
 }
-#view-edit.active::-webkit-scrollbar,
+/* hide native scrollbar — replaced by custom JS scrollbar below */
 #view-habits.active::-webkit-scrollbar,
-#view-learning.active::-webkit-scrollbar { width: 10px; }
-#view-edit.active::-webkit-scrollbar-track,
-#view-habits.active::-webkit-scrollbar-track,
-#view-learning.active::-webkit-scrollbar-track {
-  background: #1a1a2e; border-radius: 5px;
+#view-learning.active::-webkit-scrollbar { width: 0; }
+/* Custom always-visible scrollbar (positioned inside main) */
+#customSBTrack {
+  position: absolute;
+  right: 4px; top: 1rem; bottom: 1rem;
+  width: 10px;
+  background: #1a1a2e;
+  border-radius: 5px;
+  display: none;
+  z-index: 20;
+  cursor: pointer;
 }
-#view-edit.active::-webkit-scrollbar-thumb,
-#view-habits.active::-webkit-scrollbar-thumb,
-#view-learning.active::-webkit-scrollbar-thumb {
-  background: #4f46e5; border-radius: 5px; min-height: 40px;
+#customSBThumb {
+  position: absolute;
+  width: 100%; min-height: 40px;
+  background: #4f46e5;
+  border-radius: 5px;
+  cursor: grab;
+  transition: background 0.15s;
 }
-#view-edit.active::-webkit-scrollbar-thumb:hover,
-#view-habits.active::-webkit-scrollbar-thumb:hover,
-#view-learning.active::-webkit-scrollbar-thumb:hover {
-  background: #6366f1;
+#customSBThumb:hover  { background: #6366f1; }
+#customSBThumb:active { cursor: grabbing; background: #818cf8; }
+/* Edit toolbar — compact one-line bar */
+.edit-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
 }
+.edit-toolbar .edit-tabs { margin-bottom: 0; }
+.edit-toolbar-actions { display: flex; gap: 0.5rem; align-items: center; flex-shrink: 0; }
+.edit-toolbar .save-btn  { margin-top: 0; padding: 0.45rem 1.1rem; font-size: 0.82rem; }
+.edit-toolbar .reset-btn { padding: 0.45rem 0.9rem; font-size: 0.82rem; }
+/* editRows — 2-column grid, no outer scroll */
+#editRows {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 0;
+  scrollbar-width: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.4rem;
+  align-content: start;
+}
+#editRows::-webkit-scrollbar { width: 0; }
+/* Scoped e-row overrides — single-line grid per card in the Edit tab */
+#editRows .e-row {
+  display: grid;
+  grid-template-columns: auto auto auto 1fr auto auto;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 0.8rem 0.55rem 0.9rem;
+  margin-bottom: 0;
+  flex-wrap: unset;
+  border-left-width: 3px;
+  transition: border-color var(--dur-fast), background var(--dur-fast);
+}
+/* Category-coloured cards */
+#editRows .e-row.cat-wellness { background: rgba(139,92,246,0.10); border-left-color: #8b5cf6; }
+#editRows .e-row.cat-learning { background: rgba(59,130,246,0.10);  border-left-color: #3b82f6; }
+#editRows .e-row.cat-work     { background: rgba(239,68,68,0.10);   border-left-color: #ef4444; }
+#editRows .e-row.cat-personal { background: rgba(100,116,139,0.10); border-left-color: #64748b; }
+#editRows .e-row.cat-commute  { background: rgba(245,158,11,0.10);  border-left-color: #f59e0b; }
+#editRows .e-row.cat-chores   { background: rgba(16,185,129,0.10);  border-left-color: #10b981; }
+#editRows .e-row.cat-blocked  { background: rgba(30,41,59,0.40);    border-left-color: #334155; }
+#editRows .e-row.cat-sleep    { background: rgba(15,23,42,0.50);    border-left-color: #1e293b; }
+/* Time range styling inside edit cards */
+#editRows .e-row input[type="time"] {
+  width: 88px; font-size: 0.78rem; padding: 0.3rem 0.45rem;
+  background: rgba(0,0,0,0.25); border-color: rgba(255,255,255,0.08);
+  color: #a5b4fc; font-family: var(--font-mono);
+}
+#editRows .e-sep { font-size: 0.7rem; color: var(--muted); }
+#editRows .e-row input[type="text"] {
+  font-size: 0.82rem; padding: 0.3rem 0.5rem;
+  background: rgba(0,0,0,0.2); border-color: rgba(255,255,255,0.07);
+}
+#editRows .e-row select {
+  font-size: 0.75rem; padding: 0.3rem 0.4rem;
+  background: rgba(0,0,0,0.3); border-color: rgba(255,255,255,0.08);
+  max-width: 100px;
+}
+#editRows .del-btn { padding: 0.3rem 0.55rem; font-size: 0.78rem; }
+/* Full-width items inside the 2-col grid */
+#editRows .add-btn      { grid-column: 1 / -1; margin-top: 0; }
+#editRows .overlap-warn { grid-column: 1 / -1; }
+/* Alarms tab */
+#view-alarms.active {
+  display: flex !important;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  gap: 0.5rem;
+}
+.alarms-grid {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  align-content: start;
+  padding-right: 14px;
+  scrollbar-width: none;
+}
+.alarms-grid::-webkit-scrollbar { width: 0; }
+
 .wk-toolbar {
   display: flex;
   align-items: center;
@@ -1705,10 +1808,19 @@ main {
     <span class="snav-label">Edit</span>
   </button>
 
+  <!-- Alarms -->
+  <button class="snav-btn" onclick="switchView('alarms')" aria-label="Alarms">
+    <svg class="snav-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M10 2a6 6 0 00-6 6c0 3.5-1.5 4.5-1.5 5.5h15c0-1-1.5-2-1.5-5.5a6 6 0 00-6-6z"/>
+      <path d="M8.5 17.5a1.5 1.5 0 003 0"/>
+    </svg>
+    <span class="snav-label">Alarms</span>
+  </button>
 
 </aside>
 
 <main>
+<div id="customSBTrack"><div id="customSBThumb"></div></div>
 
   <!-- TODAY -->
   <div id="view-today" class="view active">
@@ -1839,30 +1951,27 @@ main {
 
   <!-- EDIT -->
   <div id="view-edit" class="view">
-    <div class="section-hd">
-      <h2>Edit Schedule</h2>
-      <p>Customize your timetable — changes save to <code style="font-size:0.8rem;color:var(--accent)">data/schedule.json</code></p>
-    </div>
-    <div class="edit-tabs">
-      <button class="etab active" onclick="switchETab('weekday')">Mon–Fri</button>
-      <button class="etab" onclick="switchETab('saturday')">Saturday</button>
-      <button class="etab" onclick="switchETab('sunday')">Sunday</button>
-    </div>
-    <div class="edit-note">
-      💡 Edit times, rename activities, change categories. Hit Save — changes are written to <strong>data/schedule.json</strong> on your Mac.
+    <div class="edit-toolbar">
+      <div class="edit-tabs">
+        <button class="etab active" onclick="switchETab('weekday')">Mon–Fri</button>
+        <button class="etab" onclick="switchETab('saturday')">Sat</button>
+        <button class="etab" onclick="switchETab('sunday')">Sun</button>
+      </div>
+      <div class="edit-toolbar-actions">
+        <button class="save-btn" onclick="saveSchedule()">💾 Save</button>
+        <button class="reset-btn" onclick="resetSchedule()">↩ Reset</button>
+      </div>
     </div>
     <div id="editRows"></div>
-    <div style="margin-top:0.5rem;">
-      <button class="save-btn" onclick="saveSchedule()">💾 Save Schedule</button>
-      <button class="reset-btn" onclick="resetSchedule()">↩ Reset to Defaults</button>
-    </div>
+  </div>
 
-    <!-- Alarms -->
-    <div class="alarm-section-hd">
-      <h3>⏰ Alarms</h3>
-      <button class="add-btn" style="width:auto;margin-top:0;padding:0.45rem 1rem;" onclick="addAlarm()">+ Add Alarm</button>
+  <!-- ALARMS -->
+  <div id="view-alarms" class="view">
+    <div class="wk-toolbar">
+      <h2>Alarms</h2>
+      <button class="add-item-btn" onclick="addAlarm()">+ Add Alarm</button>
     </div>
-    <div id="alarmCards"></div>
+    <div id="alarmCards" class="alarms-grid"></div>
   </div>
 
 
@@ -2249,7 +2358,7 @@ function updateClock() {
 // VIEW SWITCHER
 // =====================================================================
 
-const TAB_ORDER = ['today','week','habits','learning','edit'];
+const TAB_ORDER = ['today','week','habits','learning','edit','alarms'];
 
 function switchView(name) {
   const currentEl = document.querySelector('.view.active');
@@ -2283,7 +2392,16 @@ function switchView(name) {
     nextEl.classList.remove('v-in-up', 'v-in-down');
   }, { once: true });
 
-  ({today:renderToday, week:renderWeek, habits:renderHabits, learning:renderLearning, edit:renderEdit})[name]?.();
+  ({today:renderToday, week:renderWeek, habits:renderHabits, learning:renderLearning, edit:renderEdit, alarms:renderAlarmsTab})[name]?.();
+
+  // Custom scrollbar attachment
+  if (name === 'alarms') {
+    requestAnimationFrame(() => attachCustomScrollbar('alarmCards'));
+  } else if (['habits','learning'].includes(name)) {
+    requestAnimationFrame(() => attachCustomScrollbar('view-' + name));
+  } else {
+    hideCustomScrollbar();
+  }
 }
 
 // =====================================================================
@@ -3140,20 +3258,21 @@ function renderEdit() {
   const overlaps = findOverlaps(blocks);
   if (overlaps.length) {
     const warn = document.createElement('div');
-    warn.style.cssText = 'background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.35);border-radius:8px;padding:0.75rem 1rem;margin-bottom:0.75rem;font-size:0.8rem;color:#f87171;';
+    warn.className = 'overlap-warn';
+    warn.style.cssText = 'background:rgba(220,38,38,0.12);border:1px solid rgba(220,38,38,0.35);border-radius:8px;padding:0.75rem 1rem;font-size:0.8rem;color:#f87171;';
     warn.innerHTML = `<strong>⚠️ Time overlaps detected — fix before saving:</strong><br>${overlaps.map(e=>`• ${e}`).join('<br>')}`;
     container.appendChild(warn);
   }
 
   blocks.forEach((b,i) => {
     const row = document.createElement('div');
-    row.className = 'e-row';
+    row.className = `e-row cat-${b.category}`;
     row.innerHTML = `
       <input type="time" value="${b.start}" onchange="updBlockById('${state.editTab}','${b.id}','start',this.value)"/>
-      <span class="e-sep">→</span>
+      <span class="e-sep">–</span>
       <input type="time" value="${b.end}" onchange="updBlockById('${state.editTab}','${b.id}','end',this.value)"/>
       <input type="text" value="${b.name}" onchange="updBlockById('${state.editTab}','${b.id}','name',this.value)" placeholder="Activity name"/>
-      <select onchange="updBlockById('${state.editTab}','${b.id}','category',this.value)">
+      <select onchange="updBlockById('${state.editTab}','${b.id}','category',this.value);this.closest('.e-row').className='e-row cat-'+this.value">
         ${cats.map(c=>`<option value="${c}" ${b.category===c?'selected':''}>${c.charAt(0).toUpperCase()+c.slice(1)}</option>`).join('')}
       </select>
       <button class="del-btn" onclick="delBlockById('${state.editTab}','${b.id}')">✕</button>`;
@@ -3165,9 +3284,9 @@ function renderEdit() {
   addBtn.textContent = '+ Add Time Block';
   addBtn.onclick = () => addBlock(state.editTab);
   container.appendChild(addBtn);
-
-  renderAlarms();
 }
+
+function renderAlarmsTab() { renderAlarms(); }
 
 function switchETab(tab) {
   state.editTab = tab;
@@ -4281,6 +4400,62 @@ function checkAlerts() {
     }
   }
 }
+
+// ── Custom scrollbar (always-visible, draggable — Pi overlay-SB workaround) ──
+(function() {
+  const track = document.getElementById('customSBTrack');
+  const thumb = document.getElementById('customSBThumb');
+  let _view = null, _drag = null;
+
+  function update() {
+    if (!_view) return;
+    const { scrollTop, scrollHeight, clientHeight } = _view;
+    if (scrollHeight <= clientHeight) { track.style.display = 'none'; return; }
+    track.style.display = 'block';
+    const trackH = track.clientHeight;
+    const thumbH = Math.max(40, (clientHeight / scrollHeight) * trackH);
+    const thumbTop = (scrollTop / (scrollHeight - clientHeight)) * (trackH - thumbH);
+    thumb.style.height = thumbH + 'px';
+    thumb.style.top    = thumbTop + 'px';
+  }
+
+  window.attachCustomScrollbar = function(viewId) {
+    if (_view) _view.removeEventListener('scroll', update);
+    _view = document.getElementById(viewId);
+    if (!_view) { track.style.display = 'none'; return; }
+    _view.addEventListener('scroll', update);
+    update();
+  };
+
+  window.hideCustomScrollbar = function() {
+    if (_view) _view.removeEventListener('scroll', update);
+    _view = null;
+    track.style.display = 'none';
+  };
+
+  // Drag thumb
+  thumb.addEventListener('mousedown', e => {
+    if (!_view) return;
+    _drag = { startY: e.clientY, startScroll: _view.scrollTop };
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', e => {
+    if (!_drag || !_view) return;
+    const delta     = e.clientY - _drag.startY;
+    const scrollMax = _view.scrollHeight - _view.clientHeight;
+    const trackMax  = track.clientHeight - thumb.clientHeight;
+    _view.scrollTop = _drag.startScroll + delta * (scrollMax / trackMax);
+  });
+  document.addEventListener('mouseup', () => { _drag = null; });
+
+  // Click track to jump
+  track.addEventListener('click', e => {
+    if (e.target === thumb || !_view) return;
+    const rect  = track.getBoundingClientRect();
+    const ratio = (e.clientY - rect.top) / track.clientHeight;
+    _view.scrollTop = ratio * (_view.scrollHeight - _view.clientHeight);
+  });
+})();
 
 // ── Fullscreen toggle ─────────────────────────────────────────────────
 const FS_EXPAND = `<path d="M1 5V1h4M9 1h4v4M13 9v4H9M5 13H1V9"/>`;
