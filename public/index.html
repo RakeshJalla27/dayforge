@@ -76,12 +76,13 @@ button, input, select, textarea, a { touch-action: manipulation; }
   .topic-del-btn:hover, .add-item-btn:hover, .stale-bar button:hover { filter: none; background: unset; opacity: 1; }
 }
 
+html { height: 100%; }
 body {
   font-family: var(--font-body);
   background: var(--bg);
   color: var(--text);
-  min-height: 100dvh;
-  overflow-x: hidden;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* ── Ambient background blobs ─────────────────────────────────────────────── */
