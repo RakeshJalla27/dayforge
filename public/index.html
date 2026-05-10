@@ -1599,7 +1599,23 @@ main {
   z-index: 0;
 }
 /* All direct children of active card sit above the canvas */
-.td-active-card > :not(.td-matrix-canvas) { position: relative; z-index: 1; }
+.td-active-card > :not(.td-matrix-canvas):not(#kidAnimContainer) { position: relative; z-index: 1; }
+
+/* ── Kids SVG animation container ─────────────────────────────────────── */
+#kidAnimContainer {
+  position: absolute;
+  inset: 0;
+  display: none;
+  overflow: hidden;
+  border-radius: inherit;
+  z-index: 0;
+}
+#kidAnimContainer video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+}
 
 @media (max-width: 640px) {
   main { padding: 1rem; }
@@ -1850,6 +1866,7 @@ main {
         <!-- Active block card -->
         <div class="td-active-card" id="tdActiveCard">
           <canvas id="matrixCanvas" class="td-matrix-canvas" aria-hidden="true"></canvas>
+          <div id="kidAnimContainer" aria-hidden="true"></div>
           <div class="td-live-badge">
             <span class="td-live-dot"></span>
             <span class="td-live-label">Live</span>
@@ -2490,7 +2507,14 @@ function updateTodayPanel() {
     card.style.setProperty('--td-cat-color', color);
     card.style.borderColor = color + '35';
     card.style.boxShadow   = '0 0 48px ' + color + '18';
-    startCategoryAnimation(current.category);
+    const kidSvgPath = document.documentElement.dataset.theme === 'kids' ? getKidsSvgPath(current.name) : null;
+    if (kidSvgPath) {
+      stopCategoryAnimation();
+      loadKidsAnim(kidSvgPath);
+    } else {
+      hideKidsAnim();
+      startCategoryAnimation(current.category);
+    }
 
     // Learning block: match by category + topic flag OR name pattern (DB blocks may lack topic:'auto')
     const isLearning = current.category === 'learning' &&
@@ -2535,6 +2559,7 @@ function updateTodayPanel() {
     chipEl.style.background = 'transparent';
     if (detailEl) detailEl.style.display = 'none';
     stopCategoryAnimation();
+    hideKidsAnim();
     const barEl = document.getElementById('tdProgressBar');
     if (barEl) barEl.style.width = '0%';
     const pctEl = document.getElementById('tdProgressPct');
@@ -4022,6 +4047,71 @@ window.addEventListener('resize', () => {
     resizeCategoryAnimation();
   }
 });
+
+// =====================================================================
+// KIDS SVG ANIMATIONS
+// =====================================================================
+
+const KIDS_VIDEO_MAP = {
+  'badminton':  'Srijan_badminton.mp4',
+  'breakfast':  'Srijan_breakfast.mp4',
+  'dinner':     'Srijan_dinner.mp4',
+  'exercise':   'Srijan_exercise.mp4',
+  'lunch':      'Srijan_lunch.mp4',
+  'meditation': 'Srijan_meditation.mp4',
+  'minecraft':  'Srijan_minecraft.mp4',
+  'play':       'Srijan_play.mp4',
+  'shower':     'Srijan_shower.mp4',
+  'sleep':      'Srijan_sleep.mp4',
+  'study':      'Srijan_study.mp4',
+  'swimming':   'Srijan_swimming.mp4',
+  'wake':       'Srijan_wakeup.mp4',
+};
+
+function getKidsSvgPath(blockName) {
+  const lower = (blockName || '').toLowerCase();
+  for (const key in KIDS_VIDEO_MAP) {
+    if (lower.includes(key)) return '/animations/kids/' + KIDS_VIDEO_MAP[key];
+  }
+  return null;
+}
+
+function loadKidsAnim(path) {
+  const container = document.getElementById('kidAnimContainer');
+  const canvas    = document.getElementById('matrixCanvas');
+  if (!container) return;
+  if (container.dataset.src === path) {
+    container.style.display = 'block';
+    if (canvas) canvas.style.display = 'none';
+    const vid = container.querySelector('video');
+    if (vid) vid.play().catch(() => {});
+    return;
+  }
+  container.innerHTML = '';
+  const vid = document.createElement('video');
+  vid.src = path;
+  vid.autoplay = true;
+  vid.loop = true;
+  vid.muted = true;
+  vid.playsInline = true;
+  container.appendChild(vid);
+  vid.play().catch(() => {});
+  container.dataset.src = path;
+  container.style.display = 'block';
+  if (canvas) canvas.style.display = 'none';
+}
+
+function hideKidsAnim() {
+  const container = document.getElementById('kidAnimContainer');
+  const canvas    = document.getElementById('matrixCanvas');
+  if (container) {
+    const vid = container.querySelector('video');
+    if (vid) vid.pause();
+    container.style.display = 'none';
+    container.dataset.src = '';
+  }
+  if (canvas) canvas.style.display = '';
+}
 
 // =====================================================================
 // QUOTES — load, shuffle (no repeats until all shown), rotate every 10 min
